@@ -47,6 +47,7 @@ export const ui = {
 			signIn: "Sign In",
 			signUp: "Sign Up",
 			vaults: "Vaults",
+			blog: "Blog",
 			terms: "Terms",
 			privacy: "Privacy",
 		},
@@ -80,7 +81,7 @@ export const ui = {
 			installSteps: [
 				["Open Obsidian Settings and go to", "Community plugins", "."],
 				["Turn off Safe mode and click", "Browse", "."],
-				["Search for and install", "Obsidian42 - BRAT", ", then enable it."],
+				["Search for and install", "BRAT", ", then enable it."],
 				["Open the BRAT settings, and click", "Add Beta plugin", "."],
 				["Enter the repository URL:"],
 				["Go back to Community plugins and enable", "Synch", "."],
@@ -163,6 +164,7 @@ export const ui = {
 			signIn: "로그인",
 			signUp: "가입하기",
 			vaults: "Vaults",
+			blog: "블로그",
 			terms: "이용약관",
 			privacy: "개인정보 처리방침",
 		},
@@ -196,7 +198,7 @@ export const ui = {
 			installSteps: [
 				["Obsidian 설정을 열고", "Community plugins", "로 이동합니다."],
 				["Safe mode를 끄고", "Browse", "를 클릭합니다."],
-				["", "Obsidian42 - BRAT", "을 검색해 설치한 다음 활성화합니다."],
+				["", "BRAT", "을 검색해 설치한 다음 활성화합니다."],
 				["BRAT 설정을 열고", "Add Beta plugin", "을 클릭합니다."],
 				["저장소 URL을 입력합니다:"],
 				["Community plugins로 돌아가", "Synch", "를 활성화합니다."],

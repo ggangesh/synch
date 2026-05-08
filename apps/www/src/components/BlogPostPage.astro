@@ -4,7 +4,7 @@ import type { CollectionEntry } from "astro:content";
 import Footer from "./Footer.astro";
 import Header from "./Header.astro";
 import Layout from "../layouts/Layout.astro";
-import type { Locale } from "../i18n";
+import { ui, type Locale } from "../i18n";
 
 interface Props {
   Content: AstroComponentFactory;
@@ -13,15 +13,26 @@ interface Props {
 }
 
 const { Content, locale, post } = Astro.props;
+const t = ui[locale];
+const publishedDate = post.data.pubDate.toLocaleDateString(t.blog.dateLocale, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 ---
 
 <Layout title={`${post.data.title} - Synch`} locale={locale}>
-  <div class="max-w-2xl mx-auto px-6 w-full flex-1 flex flex-col">
+  <div class="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6">
     <Header locale={locale} />
 
-    <main class="flex-1 py-24">
-      <article class="blog-content max-w-none">
-        <h1>{post.data.title}</h1>
+    <main class="flex-1 py-20 sm:py-24">
+      <article class="blog-content mx-auto w-full max-w-[68ch]">
+        <header class="mb-12 border-b border-zinc-800/60 pb-10">
+          <time class="mb-5 block text-xs text-zinc-600" datetime={post.data.pubDate.toISOString()}>
+            {publishedDate}
+          </time>
+          <h1>{post.data.title}</h1>
+        </header>
         <Content />
       </article>
     </main>
@@ -33,25 +44,25 @@ const { Content, locale, post } = Astro.props;
 <style is:global>
   @reference "../styles/global.css";
   .blog-content h1 {
-    @apply text-2xl sm:text-3xl text-zinc-200 tracking-tight font-normal mb-12;
+    @apply text-3xl sm:text-4xl text-zinc-100 tracking-tight font-normal leading-tight;
   }
   .blog-content h2 {
-    @apply text-xl text-zinc-300 font-normal mt-16 mb-6 tracking-tight;
+    @apply text-xl sm:text-2xl text-zinc-200 font-normal mt-16 mb-6 tracking-tight leading-snug;
   }
   .blog-content h3 {
-    @apply text-lg text-zinc-300 font-normal mt-12 mb-4 tracking-tight;
+    @apply text-lg text-zinc-200 font-normal mt-12 mb-4 tracking-tight leading-snug;
   }
   .blog-content p {
-    @apply text-zinc-400 mb-6 leading-relaxed;
+    @apply text-[15px] sm:text-base text-zinc-300 mb-6 leading-8;
   }
   .blog-content blockquote {
-    @apply border-l border-zinc-800 pl-5 my-8 text-zinc-400 italic;
+    @apply border-l-2 border-zinc-700 pl-5 my-8 text-zinc-400 italic;
   }
   .blog-content blockquote p {
     @apply mb-0;
   }
   .blog-content pre {
-    @apply overflow-x-auto rounded border border-zinc-800/50 bg-zinc-900/50 px-4 py-3 my-8 text-sm text-zinc-300;
+    @apply overflow-x-auto rounded-md border border-zinc-800/70 bg-zinc-950 px-4 py-4 my-8 text-sm leading-6 text-zinc-300;
   }
   .blog-content code {
     @apply rounded bg-zinc-800/50 px-1.5 py-0.5 text-sm text-zinc-300 font-mono;
@@ -60,16 +71,44 @@ const { Content, locale, post } = Astro.props;
     @apply bg-transparent p-0 text-zinc-400;
   }
   .blog-content img {
-    @apply my-10 rounded border border-zinc-800/50;
+    @apply my-10 rounded-md border border-zinc-800/60;
   }
   .blog-content a {
     @apply text-zinc-300 underline decoration-zinc-700 hover:text-zinc-200 hover:decoration-zinc-500 transition-colors underline-offset-4;
   }
   .blog-content ul {
-    @apply space-y-3 list-disc list-outside ml-4 mb-6 text-zinc-400 marker:text-zinc-700;
+    @apply space-y-3.5 list-disc list-outside ml-5 mb-7 text-[15px] sm:text-base text-zinc-400 marker:text-zinc-700;
   }
   .blog-content ol {
-    @apply space-y-3 list-decimal list-outside ml-4 mb-6 text-zinc-400 marker:text-zinc-700;
+    @apply space-y-3.5 list-decimal list-outside ml-5 mb-7 text-[15px] sm:text-base text-zinc-400 marker:text-zinc-700;
+  }
+  .blog-content li {
+    @apply leading-8 pl-1;
+  }
+  .blog-content table {
+    @apply my-10 block w-full overflow-x-auto rounded-md border border-zinc-800/70 bg-zinc-950/60 text-left text-sm;
+  }
+  .blog-content thead {
+    @apply bg-zinc-900/80;
+  }
+  .blog-content th {
+    @apply border-b border-zinc-800 px-4 py-3 text-xs font-medium uppercase tracking-wide text-zinc-300;
+  }
+  .blog-content td {
+    @apply border-b border-zinc-900 px-4 py-3 text-zinc-400 align-top leading-relaxed;
+  }
+  .blog-content tbody tr {
+    @apply transition-colors;
+  }
+  .blog-content tbody tr:hover {
+    @apply bg-zinc-900/35;
+  }
+  .blog-content tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .blog-content th:not(:last-child),
+  .blog-content td:not(:last-child) {
+    @apply border-r border-zinc-900;
   }
   .blog-content hr {
     @apply my-12 border-t border-zinc-800;

@@ -31,6 +31,7 @@ const routePath = Astro.url.pathname
         </option>
       ))}
     </select>
+    <a href={getRelativeLocaleUrl(locale, "blog")} class="hover:text-zinc-400 transition-colors">{t.blog}</a>
     <a href={getRelativeLocaleUrl(locale, "terms")} class="hover:text-zinc-400 transition-colors">{t.terms}</a>
     <a href={getRelativeLocaleUrl(locale, "privacy")} class="hover:text-zinc-400 transition-colors">{t.privacy}</a>
   </nav>
