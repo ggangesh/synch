@@ -1,12 +1,12 @@
 export type BillingWebPage = "pricing" | "billing";
-export type BillingWebLocale = "en" | "ko";
+export type BillingWebLocale = "en" | "ko" | "ja" | "zh-cn" | "zh-tw";
 
 export function buildBillingWebPageUrl(
   apiBaseUrl: string,
   page: BillingWebPage,
   locale: BillingWebLocale,
 ): string {
-  const path = locale === "ko" ? `/ko/${page}` : `/${page}`;
+  const path = locale === "en" ? `/${page}` : `/${locale}/${page}`;
   return new URL(path, inferWebBaseUrl(apiBaseUrl)).toString();
 }
 

@@ -1,4 +1,4 @@
-import { getSynchLocale, t } from "../../i18n";
+import { t } from "../../i18n";
 import type { SynchSyncProgress, SynchSyncState } from "../../plugin/view-models";
 import {
   isStorageFullStatus,
@@ -34,14 +34,9 @@ export function formatStorageDescription(
 
 function formatSyncStatusLabel(statusLabel: string): string {
   const label = statusLabel
-    .replace(/^Sync:\s*/, "")
-    .replace(/^동기화:\s*/, "")
+    .replace(/^(Sync|동기화|同期|同步):\s*/, "")
     .replace(/^paused \d+%$/, "paused")
     .replace(/^일시 중지됨 \d+%$/, t("sync.state.paused"));
-
-  if (getSynchLocale() !== "ko") {
-    return label;
-  }
 
   const translated = label
     .replace(/^not ready/, t("sync.state.not_ready"))

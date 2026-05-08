@@ -2,6 +2,11 @@
 
 ## Added
 
+- Added Japanese, Simplified Chinese, and Traditional Chinese translations for the Obsidian plugin interface.
+- Added localized billing and pricing links for Japanese, Simplified Chinese, and Traditional Chinese users.
+
 ## Changed
+
+- Localized sync status and file-size-limit warnings now follow the selected Obsidian language more broadly.
 
 ## Fixed

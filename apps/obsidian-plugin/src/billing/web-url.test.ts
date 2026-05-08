@@ -29,4 +29,16 @@ describe("billing web URL helpers", () => {
       "https://synch.run/ko/pricing",
     );
   });
+
+  it("uses localized paths for Japanese and Chinese", () => {
+    expect(buildBillingWebPageUrl("https://api.synch.run", "billing", "ja")).toBe(
+      "https://synch.run/ja/billing",
+    );
+    expect(buildBillingWebPageUrl("https://api.synch.run", "pricing", "zh-cn")).toBe(
+      "https://synch.run/zh-cn/pricing",
+    );
+    expect(buildBillingWebPageUrl("https://api.synch.run", "billing", "zh-tw")).toBe(
+      "https://synch.run/zh-tw/billing",
+    );
+  });
 });
