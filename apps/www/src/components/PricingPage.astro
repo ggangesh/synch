@@ -109,16 +109,21 @@ const starterFeatures = [
                 {t.pricing.starterPlan}
               </h3>
               <span
-                id="starter-discount-badge"
-                class="hidden rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300"
+                class="rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium text-amber-200"
               >
-                {t.pricing.annualDiscount}
+                {t.pricing.earlyAccessBadge}
               </span>
             </div>
-            <div class="flex items-baseline gap-1">
+            <div class="flex items-baseline gap-2">
               <span id="starter-price" class="text-2xl text-zinc-200">$1</span>
               <span id="starter-interval" class="text-xs text-zinc-500">
                 {t.pricing.month}
+              </span>
+              <span
+                id="starter-original-price"
+                class="hidden text-xs text-zinc-600 line-through"
+              >
+                $12
               </span>
             </div>
           </div>
@@ -151,7 +156,7 @@ const starterFeatures = [
 
 <script define:vars={{ apiUrl, signupUrl: signupUrl.toString(), billingUrl, monthLabel: t.pricing.month, yearLabel: t.pricing.year }}>
   const starterCheckoutButton = document.getElementById("starter-checkout-button");
-  const starterDiscountBadge = document.getElementById("starter-discount-badge");
+  const starterOriginalPrice = document.getElementById("starter-original-price");
   const starterPrice = document.getElementById("starter-price");
   const starterInterval = document.getElementById("starter-interval");
   const billingOptionButtons = Array.from(
@@ -163,12 +168,12 @@ const starterFeatures = [
     monthly: {
       price: "$1",
       label: monthLabel,
-      hasDiscount: false,
+      originalPrice: "",
     },
     annual: {
       price: "$10",
       label: yearLabel,
-      hasDiscount: true,
+      originalPrice: "$12",
     },
   };
 
@@ -182,8 +187,9 @@ const starterFeatures = [
     if (starterPrice) {
       starterPrice.textContent = pricing.price;
     }
-    if (starterDiscountBadge) {
-      starterDiscountBadge.classList.toggle("hidden", !pricing.hasDiscount);
+    if (starterOriginalPrice) {
+      starterOriginalPrice.textContent = pricing.originalPrice;
+      starterOriginalPrice.classList.toggle("hidden", !pricing.originalPrice);
     }
     if (starterInterval) {
       starterInterval.textContent = pricing.label;

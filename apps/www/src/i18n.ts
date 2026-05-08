@@ -105,7 +105,7 @@ export const ui = {
 			year: "/ year",
 			monthly: "Monthly",
 			annual: "Annual",
-			annualDiscount: "$2 off",
+			earlyAccessBadge: "Early adopter",
 			comingSoon: "Coming Soon",
 			features: {
 				oneVault: "1 synced vault",
@@ -228,7 +228,7 @@ export const ui = {
 			year: "/ 년",
 			monthly: "월간",
 			annual: "연간",
-			annualDiscount: "$2 할인",
+			earlyAccessBadge: "얼리어답터 한정",
 			comingSoon: "준비 중",
 			features: {
 				oneVault: "vault 1개 동기화",
@@ -351,7 +351,7 @@ export const ui = {
 			year: "/ 年",
 			monthly: "月額",
 			annual: "年額",
-			annualDiscount: "$2割引",
+			earlyAccessBadge: "早期ユーザー限定",
 			comingSoon: "近日公開",
 			features: {
 				oneVault: "同期vault 1個",
@@ -474,7 +474,7 @@ export const ui = {
 			year: "/ 年",
 			monthly: "月付",
 			annual: "年付",
-			annualDiscount: "省 $2",
+			earlyAccessBadge: "早期用户价",
 			comingSoon: "即将推出",
 			features: {
 				oneVault: "1 个同步 vault",
@@ -597,7 +597,7 @@ export const ui = {
 			year: "/ 年",
 			monthly: "月付",
 			annual: "年付",
-			annualDiscount: "省 $2",
+			earlyAccessBadge: "早期用戶價",
 			comingSoon: "即將推出",
 			features: {
 				oneVault: "1 個同步 vault",
