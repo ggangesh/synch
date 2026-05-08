@@ -106,7 +106,8 @@ export const ui = {
 				starterStorage: "1 GB storage",
 				freeFileSize: "3 MB max file size",
 				starterFileSize: "5 MB max file size",
-				history: "1 day version history",
+				freeHistory: "1 day version history",
+				starterHistory: "1 month version history",
 			},
 		},
 		blog: {
@@ -221,7 +222,8 @@ export const ui = {
 				starterStorage: "저장 공간 1 GB",
 				freeFileSize: "파일당 최대 3 MB",
 				starterFileSize: "파일당 최대 5 MB",
-				history: "버전 기록 1일",
+				freeHistory: "버전 기록 1일",
+				starterHistory: "버전 기록 1개월",
 			},
 		},
 		blog: {

@@ -40,7 +40,7 @@ describe("SubscriptionPolicyService", () => {
 		expect(policy.pricing.annualUsd).toBe(10);
 		expect(policy.limits.storageLimitBytes).toBe(1_000_000_000);
 		expect(policy.limits.maxFileSizeBytes).toBe(5_000_000);
-		expect(policy.limits.versionHistoryRetentionDays).toBe(1);
+		expect(policy.limits.versionHistoryRetentionDays).toBe(30);
 	});
 
 	it("uses the starter policy for a matching active product subscription", async () => {
