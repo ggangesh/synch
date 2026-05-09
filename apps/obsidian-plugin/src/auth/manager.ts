@@ -7,7 +7,7 @@ import {
   isOfflineLikeError,
   type OfflineDetector,
 } from "../http/network-status";
-import { t } from "../i18n";
+import { getSynchLocale, t } from "../i18n";
 import {
   AuthClient,
   type AuthenticatedUserSession,
@@ -272,7 +272,9 @@ export class AuthManager {
     this.notify(
       `Opening browser for device sign-in...\nCode: ${authorization.userCode}`,
     );
-    this.openExternalUrl(authorization.verificationUriComplete);
+    this.openExternalUrl(
+      withDeviceLoginLocale(authorization.verificationUriComplete),
+    );
   }
 
   private openExternalUrl(url: string): void {
@@ -346,5 +348,15 @@ export class AuthManager {
     this.authPendingNetworkVerification = false;
     this.authDisplayName = "";
     await clearAuthSessionToken(this.deps.plugin);
+  }
+}
+
+function withDeviceLoginLocale(url: string): string {
+  try {
+    const localizedUrl = new URL(url);
+    localizedUrl.searchParams.set("lang", getSynchLocale());
+    return localizedUrl.toString();
+  } catch {
+    return url;
   }
 }

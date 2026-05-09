@@ -1,5 +1,5 @@
-import { Plugin } from "obsidian";
-import { describe, expect, it, vi } from "vitest";
+import { Plugin, resetObsidianMocks, setLanguage } from "obsidian";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthManager } from "./manager";
 import type { AuthClient, DeviceAuthorizationStart } from "./client";
@@ -9,6 +9,10 @@ import {
 } from "./storage";
 
 describe("AuthManager", () => {
+  beforeEach(() => {
+    resetObsidianMocks();
+  });
+
   it("treats a stored token as signed in only after the server confirms a session", async () => {
     const plugin = new Plugin();
     await writeAuthSessionToken(plugin, "stored-token");
@@ -190,7 +194,7 @@ describe("AuthManager", () => {
     expect(startDeviceAuthorization).toHaveBeenCalledTimes(1);
     expect(openExternalUrl).toHaveBeenCalledTimes(1);
     expect(openExternalUrl).toHaveBeenLastCalledWith(
-      authorization.verificationUriComplete,
+      "https://example.com/device?user_code=USER-CODE&lang=en",
     );
 
     const reopened = await manager.beginDeviceLogin();
@@ -199,7 +203,7 @@ describe("AuthManager", () => {
     expect(startDeviceAuthorization).toHaveBeenCalledTimes(1);
     expect(openExternalUrl).toHaveBeenCalledTimes(2);
     expect(openExternalUrl).toHaveBeenLastCalledWith(
-      authorization.verificationUriComplete,
+      "https://example.com/device?user_code=USER-CODE&lang=en",
     );
     expect(notify).not.toHaveBeenCalledWith(
       "Device sign-in is already in progress.",
@@ -212,6 +216,34 @@ describe("AuthManager", () => {
     await login;
 
     expect(manager.isDeviceLoginInProgress()).toBe(false);
+  });
+
+  it("opens the device sign-in page with the Obsidian language", async () => {
+    setLanguage("ko-KR");
+    const authorization = createAuthorization();
+    const delay = createDeferred<void>();
+    const openExternalUrl = vi.fn();
+    const manager = createManager({
+      authClient: {
+        startDeviceAuthorization: vi.fn(async () => authorization),
+        pollDeviceAuthorization: vi.fn(async () => ({
+          status: "expired" as const,
+          message: "expired",
+        })),
+      } as unknown as AuthClient,
+      delay: async () => await delay.promise,
+      openExternalUrl,
+    });
+
+    const login = manager.beginDeviceLogin();
+    await flushPromises();
+
+    expect(openExternalUrl).toHaveBeenCalledWith(
+      "https://example.com/device?user_code=USER-CODE&lang=ko",
+    );
+
+    delay.resolve();
+    await login;
   });
 
   it("clears the active authorization after device login finishes", async () => {
