@@ -7,7 +7,7 @@
 		"db:generate": "drizzle-kit generate",
 		"db:generate:do": "drizzle-kit generate --config=./drizzle-do.config.ts",
 		"db:migrate:local": "wrangler d1 migrations apply DB --local --env managed",
-		"db:migrate:self-hosted": "wrangler d1 migrations apply DB --remote --env self-hosted",
+		"db:migrate:self-hosted": "node ./scripts/migrate-self-hosted.mjs",
 		"db:migrate:managed": "wrangler d1 migrations apply DB --remote --env managed",
 		"db:studio": "drizzle-kit studio",
 		"dev": "wrangler dev --env managed",

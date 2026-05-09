@@ -38,7 +38,7 @@ For public self-hosting, use the Deploy to Cloudflare button at the top of this 
 pnpm deploy
 ```
 
-That command first deploys through `env.self-hosted` so Wrangler can provision configured resources, then applies D1 migrations to the provisioned `DB` binding. The `self-hosted` environment intentionally omits generated resource IDs for auto-provisioned resources and does not use Cloudflare Queues.
+That command first deploys through `env.self-hosted` so Wrangler can provision configured resources, then applies D1 migrations to the provisioned `DB` binding. The migration script resolves the auto-provisioned `synch-db` D1 database id before running Wrangler migrations because non-interactive Deploy to Cloudflare runs do not persist generated resource ids back into `wrangler.jsonc`. The `self-hosted` environment intentionally omits generated resource IDs for auto-provisioned resources and does not use Cloudflare Queues.
 
 For Synch's managed deployment path, use:
 
