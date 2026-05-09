@@ -2,11 +2,11 @@
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/hjinco/synch/tree/main/apps/api)
 
-Cloudflare Worker API for Synch. One-click and first-time setup flows use the `self-hosted` Wrangler environment so Cloudflare can provision D1, R2, Durable Objects, Queues, and static assets. Synch managed deploys use the `managed` Wrangler environment in the same config file.
+Cloudflare Worker API for Synch. Public self-hosting is supported through the Deploy to Cloudflare button, which uses the `self-hosted` Wrangler environment. Synch managed deploys use the `managed` Wrangler environment in the same config file.
 
 ## Required Secrets
 
-Set these during one-click deploy or local development:
+Set these during Deploy to Cloudflare or local development:
 
 - `BETTER_AUTH_SECRET`: random secret for Better Auth session signing.
 - `SYNC_TOKEN_SECRET`: separate random secret for sync websocket token signing.
@@ -30,15 +30,15 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-Local development uses `env.managed`. The `self-hosted` environment is kept for one-click and first-time Cloudflare deploy flows.
+Local development uses `env.managed`. The `self-hosted` environment is kept for Deploy to Cloudflare flows.
 
-For one-click deploys or first-time direct deploys, run:
+For public self-hosting, use the Deploy to Cloudflare button at the top of this README. The deploy command runs:
 
 ```sh
 pnpm deploy
 ```
 
-This applies D1 migrations and deploys through `env.self-hosted` in `wrangler.jsonc`. That environment omits generated resource IDs so Cloudflare can provision D1, R2, and Queues for one-click deploys or first-time direct deploys.
+That command first deploys through `env.self-hosted` so Wrangler can provision configured resources, then applies D1 migrations to the provisioned `DB` binding. The `self-hosted` environment intentionally omits generated resource IDs for auto-provisioned resources.
 
 For Synch's managed deployment path, use:
 
