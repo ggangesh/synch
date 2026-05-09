@@ -1,9 +1,9 @@
 /**
  * Shared Wrangler config for Synch API deployments.
  *
- * Resource bindings live in named environments. The self-hosted environment
- * omits generated resource IDs so Cloudflare can provision resources for
- * Deploy to Cloudflare and first-time setup flows.
+ * Top-level bindings are the public self-hosted deployment used by Deploy to
+ * Cloudflare. They omit generated resource IDs so Cloudflare can provision
+ * resources for first-time setup flows.
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
@@ -36,34 +36,32 @@
 			"fallthrough": true
 		}
 	],
-	"env": {
-		"self-hosted": {
-			"durable_objects": {
-				"bindings": [
-					{
-						"class_name": "SyncCoordinator",
-						"name": "SYNC_COORDINATOR"
-					}
-				]
-			},
-			"r2_buckets": [
-				{
-					"binding": "SYNC_BLOBS",
-					"bucket_name": "synch-bucket"
-				}
-			],
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "synch-db",
-					"migrations_dir": "drizzle"
-				}
-			],
-			"vars": {
-				"SYNC_TOKEN_TTL_SECONDS": 120,
-				"SELF_HOSTED": true
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "SyncCoordinator",
+				"name": "SYNC_COORDINATOR"
 			}
-		},
+		]
+	},
+	"r2_buckets": [
+		{
+			"binding": "SYNC_BLOBS",
+			"bucket_name": "synch-bucket"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "synch-db",
+			"migrations_dir": "drizzle"
+		}
+	],
+	"vars": {
+		"SYNC_TOKEN_TTL_SECONDS": 120,
+		"SELF_HOSTED": true
+	},
+	"env": {
 		"managed": {
 			"durable_objects": {
 				"bindings": [

@@ -2,7 +2,7 @@
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/hjinco/synch/tree/main/apps/api)
 
-Cloudflare Worker API for Synch. Public self-hosting is supported through the Deploy to Cloudflare button, which uses the `self-hosted` Wrangler environment. Synch managed deploys use the `managed` Wrangler environment in the same config file.
+Cloudflare Worker API for Synch. Public self-hosting is supported through the Deploy to Cloudflare button, which uses the top-level Wrangler configuration. Synch managed deploys use the `managed` Wrangler environment in the same config file.
 
 ## Required Secrets
 
@@ -30,7 +30,7 @@ pnpm db:migrate:local
 pnpm dev
 ```
 
-Local development uses `env.managed`. The `self-hosted` environment is kept for Deploy to Cloudflare flows.
+Local development uses `env.managed`. The top-level Wrangler configuration is kept for Deploy to Cloudflare self-hosting flows.
 
 For public self-hosting, use the Deploy to Cloudflare button at the top of this README. The deploy command runs:
 
@@ -38,7 +38,7 @@ For public self-hosting, use the Deploy to Cloudflare button at the top of this 
 pnpm deploy
 ```
 
-That command first deploys through `env.self-hosted` so Wrangler can provision configured resources, then applies D1 migrations to the provisioned `DB` binding. The migration script resolves the auto-provisioned `synch-db` D1 database id before running Wrangler migrations because non-interactive Deploy to Cloudflare runs do not persist generated resource ids back into `wrangler.jsonc`. The `self-hosted` environment intentionally omits generated resource IDs for auto-provisioned resources and does not use Cloudflare Queues.
+That command first deploys the top-level self-hosted Worker so Wrangler can provision configured resources, then applies D1 migrations to the provisioned `DB` binding. The migration script resolves the auto-provisioned `synch-db` D1 database id before running Wrangler migrations because non-interactive Deploy to Cloudflare runs do not persist generated resource ids back into `wrangler.jsonc`. The top-level self-hosted configuration intentionally omits generated resource IDs for auto-provisioned resources and does not use Cloudflare Queues.
 
 For Synch's managed deployment path, use:
 

@@ -72,18 +72,14 @@ try {
 			{
 				name: "synch-api",
 				compatibility_date: "2026-04-14",
-				env: {
-					"self-hosted": {
-						d1_databases: [
-							{
-								binding: bindingName,
-								database_name: databaseName,
-								database_id: databaseId,
-								migrations_dir: path.join(projectDir, "drizzle"),
-							},
-						],
+				d1_databases: [
+					{
+						binding: bindingName,
+						database_name: databaseName,
+						database_id: databaseId,
+						migrations_dir: path.join(projectDir, "drizzle"),
 					},
-				},
+				],
 			},
 			null,
 			2,
@@ -96,8 +92,6 @@ try {
 		"apply",
 		databaseName,
 		"--remote",
-		"--env",
-		"self-hosted",
 		"--config",
 		tempConfigPath,
 	]);
