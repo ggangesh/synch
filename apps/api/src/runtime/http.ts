@@ -7,16 +7,22 @@ import { BillingService } from "../billing/service";
 import { resolveOriginBinding, resolveUrlBinding } from "../config/env";
 import { createDb } from "../db/client";
 import { CloudflareSubscriptionPolicyRefreshQueue } from "../subscription/policy-refresh-queue";
+import type { SubscriptionPolicyRefreshMessage } from "../subscription/policy-refresh-queue";
 import { SubscriptionPolicyService } from "../subscription/policy-service";
 import { SyncService } from "../sync/access/service";
 import { SyncTokenService } from "../sync/access/token-service";
 import { BlobRepository } from "../sync/blob/repository";
 import { CoordinatorProxyRepository } from "../sync/coordinator/proxy-repository";
-import { CloudflareVaultPurgeQueue } from "../vault/purge-queue";
+import { VaultPurgeConsumer } from "../vault/purge-consumer";
+import { CloudflareVaultPurgeQueue, type VaultPurgeQueue } from "../vault/purge-queue";
+import type { VaultPurgeMessage } from "../vault/purge-queue";
 import { VaultRepository } from "../vault/repository";
 import { VaultService } from "../vault/service";
 
-type RuntimeEnv = Omit<Env, "AUTH_EMAIL_FROM" | "DEV_MODE" | "EMAIL"> & {
+type RuntimeEnv = Omit<
+	Env,
+	"AUTH_EMAIL_FROM" | "DEV_MODE" | "EMAIL" | "POLICY_REFRESH_QUEUE" | "VAULT_PURGE_QUEUE"
+> & {
 	EMAIL?: SendEmail;
 	AUTH_EMAIL_FROM?: string;
 	DEV_MODE?: boolean | string;
@@ -26,6 +32,8 @@ type RuntimeEnv = Omit<Env, "AUTH_EMAIL_FROM" | "DEV_MODE" | "EMAIL"> & {
 	POLAR_STARTER_MONTHLY_PRODUCT_ID?: string;
 	POLAR_STARTER_ANNUAL_PRODUCT_ID?: string;
 	POLAR_SANDBOX?: string;
+	POLICY_REFRESH_QUEUE?: Queue<SubscriptionPolicyRefreshMessage>;
+	VAULT_PURGE_QUEUE?: Queue<VaultPurgeMessage>;
 };
 
 export function createRuntimeApp(env: RuntimeEnv, request: Request) {
@@ -50,12 +58,14 @@ export function createRuntimeApp(env: RuntimeEnv, request: Request) {
 	const subscriptionPolicyService = new SubscriptionPolicyService(env.SELF_HOSTED, db, {
 		productIdsByPlanId,
 	});
-	const subscriptionPolicyRefreshQueue =
-		new CloudflareSubscriptionPolicyRefreshQueue(env.POLICY_REFRESH_QUEUE);
 	const polarAuthPlugin = env.SELF_HOSTED
 		? null
 		: createPolarAuthPlugin(polarConfig, billingRepository, {
 				onSubscriptionUpsert: async (organizationId) => {
+					const subscriptionPolicyRefreshQueue =
+						new CloudflareSubscriptionPolicyRefreshQueue(
+							requireBinding(env.POLICY_REFRESH_QUEUE, "POLICY_REFRESH_QUEUE"),
+						);
 					await subscriptionPolicyRefreshQueue.enqueueOrganizationPolicyRefresh(
 						organizationId,
 					);
@@ -77,7 +87,13 @@ export function createRuntimeApp(env: RuntimeEnv, request: Request) {
 		productIdsByPlanId,
 		wwwBaseUrl: corsOrigin,
 	});
-	const vaultPurgeQueue = new CloudflareVaultPurgeQueue(env.VAULT_PURGE_QUEUE);
+	const vaultPurgeQueue = createVaultPurgeQueue({
+		selfHosted: env.SELF_HOSTED,
+		vaultRepository,
+		subscriptionPolicyService,
+		coordinatorProxyRepository,
+		queue: env.VAULT_PURGE_QUEUE,
+	});
 	const vaultService = new VaultService(
 		vaultRepository,
 		subscriptionPolicyService,
@@ -123,4 +139,45 @@ function resolveBooleanBinding(value: boolean | string | undefined, fallback: bo
 	}
 
 	return value === "true" || value === "1";
+}
+
+function createVaultPurgeQueue(input: {
+	selfHosted: boolean;
+	vaultRepository: VaultRepository;
+	subscriptionPolicyService: SubscriptionPolicyService;
+	coordinatorProxyRepository: CoordinatorProxyRepository;
+	queue?: Queue<VaultPurgeMessage>;
+}): VaultPurgeQueue {
+	if (!input.selfHosted) {
+		return new CloudflareVaultPurgeQueue(
+			requireBinding(input.queue, "VAULT_PURGE_QUEUE"),
+		);
+	}
+
+	const purgeVaultService = new VaultService(
+		input.vaultRepository,
+		input.subscriptionPolicyService,
+	);
+	return new InlineVaultPurgeQueue(
+		new VaultPurgeConsumer(
+			purgeVaultService,
+			input.coordinatorProxyRepository,
+		),
+	);
+}
+
+class InlineVaultPurgeQueue implements VaultPurgeQueue {
+	constructor(private readonly vaultPurgeConsumer: VaultPurgeConsumer) {}
+
+	async enqueueVaultPurge(vaultId: string): Promise<void> {
+		await this.vaultPurgeConsumer.purgeVault(vaultId);
+	}
+}
+
+function requireBinding<T>(binding: T | undefined, name: string): T {
+	if (!binding) {
+		throw new Error(`${name} binding is required`);
+	}
+
+	return binding;
 }

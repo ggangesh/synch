@@ -59,32 +59,6 @@
 					"migrations_dir": "drizzle"
 				}
 			],
-			"queues": {
-				"producers": [
-					{
-						"binding": "VAULT_PURGE_QUEUE",
-						"queue": "synch-vault-purge"
-					},
-					{
-						"binding": "POLICY_REFRESH_QUEUE",
-						"queue": "synch-policy-refresh"
-					}
-				],
-				"consumers": [
-					{
-						"queue": "synch-vault-purge",
-						"max_batch_size": 1,
-						"max_batch_timeout": 0,
-						"max_retries": 3
-					},
-					{
-						"queue": "synch-policy-refresh",
-						"max_batch_size": 1,
-						"max_batch_timeout": 0,
-						"max_retries": 5
-					}
-				]
-			},
 			"vars": {
 				"SYNC_TOKEN_TTL_SECONDS": 120,
 				"SELF_HOSTED": true

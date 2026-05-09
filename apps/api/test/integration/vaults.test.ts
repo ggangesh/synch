@@ -183,6 +183,46 @@ describe("vault integration", () => {
 		expect(issued.response.status).toBe(403);
 	});
 
+	it("deletes a vault in self-hosted mode without queue bindings", async () => {
+		const primary = await signUpAndCreateVault("Self Hosted Delete");
+		const selfHostedEnv = {
+			...env,
+			SELF_HOSTED: true,
+			VAULT_PURGE_QUEUE: undefined,
+			POLICY_REFRESH_QUEUE: undefined,
+		} as unknown as Env;
+
+		const deleted = await jsonRequestWithEnv(
+			`/v1/vaults/${encodeURIComponent(primary.vaultId)}`,
+			selfHostedEnv,
+			{
+				method: "DELETE",
+				headers: {
+					cookie: primary.sessionCookie,
+				},
+			},
+		);
+		expect(deleted.response.status).toBe(202);
+		expect(deleted.json).toEqual({
+			vault: {
+				id: primary.vaultId,
+				deletionStatus: "queued",
+			},
+		});
+
+		const listed = await jsonRequestWithEnv<{ vaults: Array<{ id: string }> }>(
+			"/v1/vaults",
+			selfHostedEnv,
+			{
+				headers: {
+					cookie: primary.sessionCookie,
+				},
+			},
+		);
+		expect(listed.response.status).toBe(200);
+		expect(listed.json?.vaults.some((vault) => vault.id === primary.vaultId)).toBe(false);
+	});
+
 	it("rejects vault deletion without manage access", async () => {
 		const primary = await signUpAndCreateVault();
 		const secondary = await signUpAccount();
