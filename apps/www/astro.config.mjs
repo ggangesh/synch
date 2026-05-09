@@ -15,7 +15,17 @@ export default defineConfig({
   integrations: [
     mdx(),
     sitemap({
-      filter: (page) => !page.includes("/billing/success/"),
+      filter: (page) => !/\/billing(?:\/|$)/.test(new URL(page).pathname),
+      i18n: {
+        defaultLocale: "en",
+        locales: {
+          en: "en",
+          ko: "ko",
+          ja: "ja",
+          "zh-cn": "zh-CN",
+          "zh-tw": "zh-TW",
+        },
+      },
     }),
   ],
   i18n: {

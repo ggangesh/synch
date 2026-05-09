@@ -3,6 +3,22 @@ export const locales = ["en", "ko", "ja", "zh-cn", "zh-tw"] as const;
 
 export type Locale = (typeof locales)[number];
 
+export const localeLanguageTags: Record<Locale, string> = {
+	en: "en",
+	ko: "ko",
+	ja: "ja",
+	"zh-cn": "zh-CN",
+	"zh-tw": "zh-TW",
+};
+
+export const openGraphLocales: Record<Locale, string> = {
+	en: "en_US",
+	ko: "ko_KR",
+	ja: "ja_JP",
+	"zh-cn": "zh_CN",
+	"zh-tw": "zh_TW",
+};
+
 export function getLocale(locale?: string): Locale {
 	return locales.includes(locale as Locale) ? (locale as Locale) : defaultLocale;
 }
@@ -19,6 +35,25 @@ export function localizedPath(locale: Locale, path = "/") {
 	}
 
 	return `/${locale}${normalizedPath}`;
+}
+
+export function unlocalizedPath(pathname: string) {
+	for (const locale of locales) {
+		if (locale === defaultLocale) {
+			continue;
+		}
+
+		const prefix = `/${locale}`;
+		if (pathname === prefix || pathname === `${prefix}/`) {
+			return "/";
+		}
+
+		if (pathname.startsWith(`${prefix}/`)) {
+			return pathname.slice(prefix.length);
+		}
+	}
+
+	return pathname || "/";
 }
 
 export function blogSlug(id: string, locale: Locale) {

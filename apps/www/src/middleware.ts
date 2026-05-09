@@ -13,6 +13,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		return next();
 	}
 
+	if (isCrawler(context.request.headers.get("user-agent"))) {
+		const response = await next();
+		response.headers.append("Vary", "Accept-Language, User-Agent");
+		return response;
+	}
+
 	const localePath = preferredLocalePath(context.request.headers.get("accept-language"));
 	if (!localePath) {
 		const response = await next();
@@ -54,4 +60,8 @@ function parseAcceptLanguage(header: string | null): string[] {
 		.filter((entry) => entry.tag.length > 0 && Number.isFinite(entry.weight) && entry.weight > 0)
 		.sort((a, b) => b.weight - a.weight || a.index - b.index)
 		.map((entry) => entry.tag);
+}
+
+function isCrawler(userAgent: string | null): boolean {
+	return /bot|crawler|spider|slurp|bingpreview|google-inspectiontool/i.test(userAgent ?? "");
 }
