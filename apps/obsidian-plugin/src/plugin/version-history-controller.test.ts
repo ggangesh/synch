@@ -1,4 +1,4 @@
-import type { Plugin, WorkspaceLeaf } from "obsidian";
+import { TFile, type Plugin, type WorkspaceLeaf } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_SYNC_FILE_RULES } from "../sync/core/file-rules";
@@ -64,6 +64,90 @@ describe("SynchVersionHistoryController", () => {
     expect(workspace.revealLeaf).toHaveBeenCalledWith(existingLeaf);
     expect(workspace.leaves).toHaveLength(1);
   });
+
+  it("includes current file text when previewing an active text version", async () => {
+    const activeFile = new TFile("Folder/active.md");
+    const version = createEntryVersion();
+    const workspace = createWorkspaceMock();
+    workspace.getActiveFile.mockReturnValue(activeFile);
+    const syncController = createSyncControllerMock({
+      listEntryVersionsForPath: vi.fn(async () => ({
+        path: activeFile.path,
+        dirty: false,
+        versions: [version],
+        hasMore: false,
+        nextBefore: null,
+      })),
+      previewEntryVersionForPath: vi.fn(async () => ({
+        status: "text",
+        path: activeFile.path,
+        reason: "auto",
+        capturedAt: 1,
+        text: "old body\n",
+      })),
+    });
+    const cachedRead = vi.fn(async () => "current body\n");
+    const controller = createController(workspace, {
+      syncController,
+      vault: { cachedRead },
+    });
+
+    await controller.listActiveFileVersions(null, 25);
+    const preview = await controller.previewActiveFileVersion(version.versionId);
+
+    expect(syncController.previewEntryVersionForPath).toHaveBeenCalledWith(
+      activeFile.path,
+      version,
+    );
+    expect(cachedRead).toHaveBeenCalledWith(activeFile);
+    expect(preview).toMatchObject({
+      status: "text",
+      text: "old body\n",
+      currentText: "current body\n",
+    });
+  });
+
+  it("falls back to plain preview when current file text cannot be read", async () => {
+    const activeFile = new TFile("Folder/active.md");
+    const version = createEntryVersion();
+    const workspace = createWorkspaceMock();
+    workspace.getActiveFile.mockReturnValue(activeFile);
+    const syncController = createSyncControllerMock({
+      listEntryVersionsForPath: vi.fn(async () => ({
+        path: activeFile.path,
+        dirty: false,
+        versions: [version],
+        hasMore: false,
+        nextBefore: null,
+      })),
+      previewEntryVersionForPath: vi.fn(async () => ({
+        status: "text",
+        path: activeFile.path,
+        reason: "auto",
+        capturedAt: 1,
+        text: "old body\n",
+      })),
+    });
+    const controller = createController(workspace, {
+      syncController,
+      vault: {
+        cachedRead: vi.fn(async () => {
+          throw new Error("read failed");
+        }),
+      },
+    });
+
+    await controller.listActiveFileVersions(null, 25);
+    const preview = await controller.previewActiveFileVersion(version.versionId);
+
+    expect(preview).toEqual({
+      status: "text",
+      path: activeFile.path,
+      reason: "auto",
+      capturedAt: 1,
+      text: "old body\n",
+    });
+  });
 });
 
 interface MockLeaf extends WorkspaceLeaf {
@@ -79,10 +163,27 @@ interface WorkspaceMock {
   getActiveFile: ReturnType<typeof vi.fn>;
 }
 
-function createController(workspace: WorkspaceMock): SynchVersionHistoryController {
+function createController(
+  workspace: WorkspaceMock,
+  options: {
+    syncController?: SyncController;
+    vault?: {
+      cachedRead: ReturnType<typeof vi.fn>;
+    };
+  } = {},
+): SynchVersionHistoryController {
   return new SynchVersionHistoryController({
-    plugin: { app: { workspace } } as unknown as Plugin,
-    syncController: {} as SyncController,
+    plugin: {
+      app: {
+        workspace,
+        vault:
+          options.vault ??
+          ({
+            cachedRead: vi.fn(),
+          } as unknown),
+      },
+    } as unknown as Plugin,
+    syncController: options.syncController ?? ({} as SyncController),
     getSyncFileRules: () => DEFAULT_SYNC_FILE_RULES,
     hasAuthenticatedSession: () => true,
     hasConnectedRemoteVault: () => true,
@@ -136,4 +237,24 @@ function attachLeafToWorkspace(leaf: MockLeaf, workspace: WorkspaceMock): void {
     workspace.detachedLeafIds.push(leaf.id);
     workspace.leaves = workspace.leaves.filter((candidate) => candidate !== leaf);
   });
+}
+
+function createSyncControllerMock(
+  overrides: Partial<SyncController>,
+): SyncController {
+  return overrides as SyncController;
+}
+
+function createEntryVersion(): Parameters<
+  SyncController["restoreEntryVersionForPath"]
+>[1] {
+  return {
+    versionId: "version-1",
+    sourceRevision: 1,
+    op: "upsert",
+    blobId: "blob-1",
+    encryptedMetadata: new Uint8Array(),
+    reason: "auto",
+    capturedAt: 1,
+  };
 }

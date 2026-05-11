@@ -148,7 +148,25 @@ export class SynchVersionHistoryController
     if (!version) {
       throw new Error("Refresh version history before previewing this version.");
     }
-    return await this.deps.syncController.previewEntryVersionForPath(file.path, version);
+    const preview = await this.deps.syncController.previewEntryVersionForPath(
+      file.path,
+      version,
+    );
+    if (preview.status !== "text") {
+      return preview;
+    }
+
+    let currentText: string;
+    try {
+      currentText = await this.deps.plugin.app.vault.cachedRead(file);
+    } catch {
+      return preview;
+    }
+
+    return {
+      ...preview,
+      currentText,
+    };
   }
 
   async listDeletedFiles(

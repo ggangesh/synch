@@ -145,6 +145,7 @@ export type SynchVersionPreview =
       reason: SynchEntryVersion["reason"];
       capturedAt: number;
       text: string;
+      currentText?: string;
     }
   | {
       status: "image";

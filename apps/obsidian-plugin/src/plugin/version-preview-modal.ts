@@ -1,3 +1,4 @@
+import { diffLines, type Change } from "diff";
 import { Component, MarkdownRenderer, Modal, Setting, type App } from "obsidian";
 
 import { t } from "../i18n";
@@ -59,6 +60,11 @@ export class VersionPreviewModal extends Modal {
     }
 
     const previewText = this.preview.text;
+    if (this.preview.currentText !== undefined) {
+      renderDiffPreview(contentEl, previewText, this.preview.currentText);
+      return;
+    }
+
     if (isMarkdownPath(this.preview.path)) {
       const previewEl = contentEl.createEl("div", {
         cls: "synch-preview-content",
@@ -92,6 +98,64 @@ export class VersionPreviewModal extends Modal {
       URL.revokeObjectURL(this.imageObjectUrl);
       this.imageObjectUrl = null;
     }
+  }
+}
+
+function renderDiffPreview(
+  contentEl: HTMLElement,
+  versionText: string,
+  currentText: string,
+): void {
+  const diffEl = contentEl.createEl("div", {
+    cls: "synch-preview-content synch-preview-diff",
+  });
+  const legend = diffEl.createEl("div", { cls: "synch-preview-diff-legend" });
+  legend.createEl("span", {
+    cls: "synch-preview-diff-legend-removed",
+    text: t("version.diffRemoved"),
+  });
+  legend.createEl("span", {
+    cls: "synch-preview-diff-legend-added",
+    text: t("version.diffAdded"),
+  });
+
+  const changes = diffLines(versionText, currentText);
+  if (changes.length === 1 && !changes[0]?.added && !changes[0]?.removed) {
+    diffEl.createEl("p", {
+      cls: "synch-preview-diff-empty",
+      text: t("version.diffNoChanges"),
+    });
+    return;
+  }
+
+  const body = diffEl.createEl("div", { cls: "synch-preview-diff-body" });
+  for (const change of changes) {
+    renderDiffChange(body, change);
+  }
+}
+
+function renderDiffChange(container: HTMLElement, change: Change): void {
+  const className = change.added
+    ? "synch-preview-diff-added"
+    : change.removed
+      ? "synch-preview-diff-removed"
+      : "synch-preview-diff-context";
+  const marker = change.added ? "+" : change.removed ? "-" : " ";
+
+  const lines = change.value.split("\n");
+  const lineCount = change.value.endsWith("\n") ? lines.length - 1 : lines.length;
+  for (let index = 0; index < lineCount; index += 1) {
+    const row = container.createEl("div", {
+      cls: `synch-preview-diff-row ${className}`,
+    });
+    row.createEl("span", {
+      cls: "synch-preview-diff-marker",
+      text: marker,
+    });
+    row.createEl("code", {
+      cls: "synch-preview-diff-line",
+      text: lines[index] === "" ? " " : lines[index],
+    });
   }
 }
 

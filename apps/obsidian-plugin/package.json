@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "dexie": "^4.4.2",
+    "diff": "^9.0.0",
     "hash-wasm": "^4.12.0"
   }
 }
