@@ -167,35 +167,37 @@ export class VaultRepository {
 		initialWrapper: VaultKeyWrapperInput,
 	): Promise<VaultRecord> {
 		const vaultId = crypto.randomUUID();
-		const rows = await this.db
-			.insert(schema.vault)
-			.values({
-				id: vaultId,
-				organizationId,
-				name,
-				activeKeyVersion: initialWrapper.envelope.keyVersion,
-			})
-			.returning();
+		const wrapperId = crypto.randomUUID();
+		const [rows] = await this.db.batch([
+			this.db
+				.insert(schema.vault)
+				.values({
+					id: vaultId,
+					organizationId,
+					name,
+					activeKeyVersion: initialWrapper.envelope.keyVersion,
+				})
+				.returning(),
+			this.db.insert(schema.vaultKeyWrapper).values({
+				id: wrapperId,
+				vaultId,
+				keyVersion: initialWrapper.envelope.keyVersion,
+				kind: initialWrapper.kind,
+				userId,
+				envelopeJson: initialWrapper.envelope,
+			}),
+			this.db.insert(schema.vaultMembership).values({
+				vaultId,
+				userId,
+				role: "owner",
+				status: "active",
+			}),
+		]);
 
 		const created = rows[0];
 		if (!created) {
 			throw new Error("vault was not created");
 		}
-
-		await this.db.insert(schema.vaultKeyWrapper).values({
-			id: crypto.randomUUID(),
-			vaultId,
-			keyVersion: initialWrapper.envelope.keyVersion,
-			kind: initialWrapper.kind,
-			userId,
-			envelopeJson: initialWrapper.envelope,
-		});
-		await this.db.insert(schema.vaultMembership).values({
-			vaultId,
-			userId,
-			role: "owner",
-			status: "active",
-		});
 
 		return toVaultRecord(created);
 	}

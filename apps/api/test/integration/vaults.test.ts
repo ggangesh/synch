@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 
+import { createDb } from "../../src/db/client";
+import * as schema from "../../src/db/d1";
 import { createRuntimeApp } from "../../src/runtime";
+import { VaultRepository } from "../../src/vault/repository";
 import {
 	DEFAULT_VAULT_WRAPPER,
 	jsonRequest,
@@ -291,6 +295,33 @@ describe("vault integration", () => {
 
 		expect(duplicate.response.status).toBe(409);
 		expect(duplicate.text).toContain("vault_name_exists");
+	});
+
+	it("rolls back vault creation when the initial wrapper cannot be stored", async () => {
+		const account = await signUpAccount();
+		const db = createDb(env.DB);
+		const repository = new VaultRepository(db);
+		const organizationId = await repository.readDefaultOrganizationIdForUser(account.userId);
+		if (!organizationId) {
+			throw new Error("test account is missing an organization");
+		}
+		const vaultName = `Atomic Vault ${crypto.randomUUID()}`;
+
+		await expect(
+			repository.createVaultForUser(
+				"missing-user",
+				organizationId,
+				vaultName,
+				DEFAULT_VAULT_WRAPPER,
+			),
+		).rejects.toThrow();
+
+		const rows = await db
+			.select({ id: schema.vault.id })
+			.from(schema.vault)
+			.where(eq(schema.vault.name, vaultName));
+
+		expect(rows).toEqual([]);
 	});
 
 	it("allows the same vault name in different organizations", async () => {
