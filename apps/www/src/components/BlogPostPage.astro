@@ -4,7 +4,7 @@ import type { CollectionEntry } from "astro:content";
 import Footer from "./Footer.astro";
 import Header from "./Header.astro";
 import Layout from "../layouts/Layout.astro";
-import { localeLanguageTags, ui, type Locale } from "../i18n";
+import { localeLanguageTags, localizedPath, ui, type Locale } from "../i18n";
 
 interface Props {
   Content: AstroComponentFactory;
@@ -14,6 +14,13 @@ interface Props {
 
 const { Content, locale, post } = Astro.props;
 const t = ui[locale];
+const apiUrl = import.meta.env.PUBLIC_API_URL || "";
+const authBaseUrl = apiUrl || Astro.url.origin;
+const vaultsUrl = new URL("/vaults", authBaseUrl);
+vaultsUrl.searchParams.set("lang", locale);
+const signupUrl = new URL("/signup", authBaseUrl);
+signupUrl.searchParams.set("return_to", vaultsUrl.toString());
+signupUrl.searchParams.set("lang", locale);
 const postUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 const ogImageUrl = new URL("/og.png", Astro.site ?? Astro.url.origin);
 const publishedDate = post.data.pubDate.toLocaleDateString(t.blog.dateLocale, {
@@ -56,12 +63,43 @@ const jsonLd = {
     <main class="flex-1 py-20 sm:py-24">
       <article class="blog-content mx-auto w-full max-w-[68ch]">
         <header class="mb-12 border-b border-zinc-800/60 pb-10">
-          <time class="mb-5 block text-xs text-zinc-600" datetime={post.data.pubDate.toISOString()}>
+          <time
+            class="mb-5 block text-xs text-zinc-600"
+            datetime={post.data.pubDate.toISOString()}
+          >
             {publishedDate}
           </time>
           <h1>{post.data.title}</h1>
         </header>
         <Content />
+        <footer class="mt-24 border-zinc-800/60 pt-10 text-center">
+          <div class="space-y-4">
+            <h2 class="text-xl text-zinc-200 font-normal tracking-tight">
+              {t.blog.ctaTitle}
+            </h2>
+            <p
+              class="max-w-xl text-[15px] sm:text-base text-zinc-500 leading-7"
+            >
+              {t.blog.ctaBody}
+            </p>
+            <div
+              class="flex flex-wrap items-center justify-center gap-3 pt-2 text-xs"
+            >
+              <a
+                href={signupUrl.toString()}
+                class="rounded bg-zinc-800 px-4 py-2 no-underline! text-zinc-200 transition-colors hover:bg-zinc-700"
+              >
+                {t.blog.ctaPrimary}
+              </a>
+              <a
+                href={localizedPath(locale, "/pricing")}
+                class="rounded border border-zinc-800 px-4 py-2 no-underline! text-zinc-400 transition-all hover:border-zinc-700 hover:bg-zinc-900/60 hover:text-zinc-300"
+              >
+                {t.blog.ctaSecondary}
+              </a>
+            </div>
+          </div>
+        </footer>
       </article>
     </main>
 

@@ -178,6 +178,11 @@ export const ui = {
 			heading: "Blog",
 			empty: "No blog posts have been added yet.",
 			dateLocale: "en",
+			ctaTitle: "Ready to sync your Obsidian vault?",
+			ctaBody:
+				"Start for free with end-to-end encrypted sync, or compare plans if you need more storage and longer version history.",
+			ctaPrimary: "Get Started",
+			ctaSecondary: "View pricing",
 		},
 		billing: {
 			heading: "Confirming subscription",
@@ -330,6 +335,11 @@ export const ui = {
 			heading: "블로그",
 			empty: "아직 블로그 글이 없습니다.",
 			dateLocale: "ko-KR",
+			ctaTitle: "Obsidian vault를 동기화해볼까요?",
+			ctaBody:
+				"종단 간 암호화 동기화를 무료로 시작해보거나 더 많은 저장 공간과 긴 버전 히스토리가 필요하면 요금제를 비교해보세요.",
+			ctaPrimary: "시작하기",
+			ctaSecondary: "요금제 보기",
 		},
 		billing: {
 			heading: "구독 확인 중",
@@ -482,6 +492,11 @@ export const ui = {
 			heading: "ブログ",
 			empty: "ブログ記事はまだありません。",
 			dateLocale: "ja-JP",
+			ctaTitle: "Obsidian vaultを同期しますか?",
+			ctaBody:
+				"エンドツーエンド暗号化同期を無料で始めるか、より多いストレージや長いバージョン履歴が必要な場合はプランを比較できます。",
+			ctaPrimary: "はじめる",
+			ctaSecondary: "料金を見る",
 		},
 		billing: {
 			heading: "サブスクリプション確認中",
@@ -634,6 +649,11 @@ export const ui = {
 			heading: "博客",
 			empty: "还没有博客文章。",
 			dateLocale: "zh-CN",
+			ctaTitle: "准备同步你的 Obsidian vault？",
+			ctaBody:
+				"免费开始使用端到端加密同步；如果需要更多存储和更长版本历史，也可以比较方案。",
+			ctaPrimary: "开始使用",
+			ctaSecondary: "查看价格",
 		},
 		billing: {
 			heading: "正在确认订阅",
@@ -786,6 +806,11 @@ export const ui = {
 			heading: "部落格",
 			empty: "尚未新增部落格文章。",
 			dateLocale: "zh-TW",
+			ctaTitle: "準備同步你的 Obsidian vault？",
+			ctaBody:
+				"免費開始使用端對端加密同步；如果需要更多儲存空間和更長版本記錄，也可以比較方案。",
+			ctaPrimary: "開始使用",
+			ctaSecondary: "查看價格",
 		},
 		billing: {
 			heading: "正在確認訂閱",
