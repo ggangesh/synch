@@ -1,5 +1,5 @@
 ---
-title: "Obsidian Sync Alternatives: Choosing the Right Way to Sync Your Notes"
+title: "6 Obsidian Sync Alternatives Compared: Free, Private, and Self-Hosted"
 description: "A practical comparison of Obsidian Sync, cloud drives, Remotely Save, Self-hosted LiveSync, Syncthing, Git, and Synch."
 pubDate: 2026-05-08
 ---
@@ -9,6 +9,8 @@ Obsidian is local-first by design. Your notes live as plain Markdown files on yo
 That control also means sync is not a single obvious choice.
 
 You can use the official Obsidian Sync service. You can put your vault in iCloud, Dropbox, Google Drive, or OneDrive. You can use community plugins such as Remotely Save or Self-hosted LiveSync. You can use Syncthing, Git, or a newer open-source option like Synch.
+
+![Obsidian homepage showing the local-first note-taking app across desktop and mobile](./obsidian-homepage.webp)
 
 All of these can move notes between devices. They do not make the same tradeoffs.
 
@@ -42,6 +44,8 @@ For many users, the best sync tool is the one that makes these problems disappea
 
 [Obsidian Sync](https://obsidian.md/sync) is the official option. It is deeply integrated into Obsidian, works across platforms, supports end-to-end encryption, and includes version history.
 
+![Obsidian Sync official page showing secure sync and version history features](./obsidian-sync-page.webp)
+
 For most users who want the least friction, this is the easiest recommendation. It is built by the Obsidian team, fits naturally into the app, and avoids a lot of manual setup.
 
 The tradeoff is that it is a paid hosted service. Obsidian Sync starts at [$5/month when billed monthly, or $4/month when billed annually](https://obsidian.md/pricing). It is also not the right fit for users who specifically want an open-source sync stack, self-hosting, or lower-cost hosted sync.
@@ -62,6 +66,8 @@ Best for: simple vaults, low-frequency editing, and users who already trust thei
 
 [Remotely Save](https://github.com/remotely-save/remotely-save) is a popular community plugin that syncs Obsidian vaults through storage providers such as S3-compatible services, WebDAV, Dropbox, OneDrive, Google Drive, Box, pCloud, and others.
 
+![Remotely Save GitHub page showing supported storage backends and encryption notes](./remotely-save-github.webp)
+
 Its strength is flexibility. You can choose your own storage backend instead of relying on a single sync provider. It also supports Obsidian mobile and offers encryption options.
 
 The tradeoff is that you are still responsible for choosing and configuring the remote storage. Conflict handling and advanced behavior can also depend on the exact setup and feature tier.
@@ -72,6 +78,8 @@ Best for: users who want Obsidian-aware sync while choosing their own cloud stor
 
 [Self-hosted LiveSync](https://github.com/vrtmrz/obsidian-livesync) is one of the most powerful community sync options for Obsidian. It can use CouchDB or object storage backends such as S3, R2, or MinIO, supports end-to-end encryption, and is designed for near real-time sync.
 
+![Self-hosted LiveSync GitHub page showing sync features and self-hosted setup notes](./self-hosted-livesync-github.webp)
+
 It is especially attractive for users who want self-hosting, strong control, and more advanced synchronization behavior than a basic file sync service.
 
 The tradeoff is complexity. Running and maintaining the backend is part of the deal. For technical users, that may be acceptable or even desirable. For users who just want private sync without operating infrastructure, it can be too much.
@@ -81,6 +89,8 @@ Best for: technical users who want self-hosted, highly capable Obsidian sync.
 ## Syncthing
 
 [Syncthing](https://syncthing.net/) is an open-source peer-to-peer file synchronization tool. It does not depend on a central cloud storage provider, and it can be a great fit for people who want device-to-device sync.
+
+![Syncthing homepage describing private peer-to-peer file synchronization](./syncthing-homepage.webp)
 
 It is not Obsidian-specific, though. It syncs files, not vault intent. That means conflict handling, mobile behavior, always-on availability, and recovery workflows are things you need to understand and manage.
 
@@ -97,6 +107,8 @@ Best for: developers and technical writers who want explicit history and control
 ## Synch
 
 Synch is an open-source, end-to-end encrypted sync project for Obsidian.
+
+![Synch GitHub repository page showing the open-source Obsidian sync project](./synch-github.webp)
 
 It is designed for users who want something closer to a hosted sync experience, but with a lower price and a more inspectable stack. Synch has a free plan, so you can start syncing without paying. For users who need more room, the Starter plan is $1/month, compared with Obsidian Sync's $5/month monthly plan.
 
