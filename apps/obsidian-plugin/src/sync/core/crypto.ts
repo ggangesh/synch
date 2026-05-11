@@ -26,23 +26,44 @@ export type SyncBlobEnvelopeOptions = {
   syncFormatVersion: number;
 };
 
+export interface SyncCryptoContext {
+  encryptMetadata(
+    metadata: SyncedEntryMetadata,
+    context: SyncMetadataCryptoContext,
+  ): Promise<string>;
+  decryptMetadata(
+    encryptedMetadata: string,
+    context: SyncMetadataCryptoContext,
+  ): Promise<SyncedEntryMetadata>;
+  encryptBlob(
+    plaintext: Uint8Array,
+    context: SyncBlobCryptoContext,
+    options: SyncBlobEnvelopeOptions,
+  ): Promise<Uint8Array>;
+  decryptBlob(
+    encryptedBlob: Uint8Array,
+    context: SyncBlobCryptoContext,
+    options: SyncBlobEnvelopeOptions,
+  ): Promise<Uint8Array>;
+  dispose(): void;
+}
+
 type EncryptedEnvelope = {
   version: number;
   nonce: string;
   ciphertext: string;
 };
 
+export function createSyncCryptoContext(remoteVaultKey: Uint8Array): SyncCryptoContext {
+  return new VaultSyncCryptoContext(remoteVaultKey);
+}
+
 export async function encryptSyncMetadata(
   remoteVaultKey: Uint8Array,
   metadata: SyncedEntryMetadata,
   context: SyncMetadataCryptoContext,
 ): Promise<string> {
-  return await encryptEnvelope(
-    remoteVaultKey,
-    "sync-metadata",
-    new TextEncoder().encode(serializeSyncedEntryMetadata(metadata)),
-    encodeMetadataAad(context),
-  );
+  return await createSyncCryptoContext(remoteVaultKey).encryptMetadata(metadata, context);
 }
 
 export async function decryptSyncMetadata(
@@ -50,13 +71,10 @@ export async function decryptSyncMetadata(
   encryptedMetadata: string,
   context: SyncMetadataCryptoContext,
 ): Promise<SyncedEntryMetadata> {
-  const plaintext = await decryptEnvelope(
-    remoteVaultKey,
-    "sync-metadata",
+  return await createSyncCryptoContext(remoteVaultKey).decryptMetadata(
     encryptedMetadata,
-    encodeMetadataAad(context),
+    context,
   );
-  return parseSyncedEntryMetadata(new TextDecoder().decode(plaintext));
 }
 
 export async function encryptSyncBlob(
@@ -65,22 +83,11 @@ export async function encryptSyncBlob(
   context: SyncBlobCryptoContext,
   options: SyncBlobEnvelopeOptions,
 ): Promise<Uint8Array> {
-  switch (options.syncFormatVersion) {
-    case ENVELOPE_VERSION: {
-      const envelope = await encryptEnvelope(
-        remoteVaultKey,
-        "sync-blob",
-        plaintext,
-        encodeBlobAad(context, ENVELOPE_VERSION),
-        ENVELOPE_VERSION,
-      );
-      return new TextEncoder().encode(envelope);
-    }
-    case SYNC_BLOB_BINARY_ENVELOPE_VERSION:
-      return await encryptBinaryBlobEnvelope(remoteVaultKey, plaintext, context);
-    default:
-      throwUnsupportedSyncBlobFormatVersion(options.syncFormatVersion);
-  }
+  return await createSyncCryptoContext(remoteVaultKey).encryptBlob(
+    plaintext,
+    context,
+    options,
+  );
 }
 
 export async function decryptSyncBlob(
@@ -89,30 +96,172 @@ export async function decryptSyncBlob(
   context: SyncBlobCryptoContext,
   options: SyncBlobEnvelopeOptions,
 ): Promise<Uint8Array> {
-  switch (options.syncFormatVersion) {
-    case ENVELOPE_VERSION:
-      return await decryptEnvelope(
-        remoteVaultKey,
-        "sync-blob",
-        new TextDecoder().decode(encryptedBlob),
-        encodeBlobAad(context, ENVELOPE_VERSION),
-        ENVELOPE_VERSION,
+  return await createSyncCryptoContext(remoteVaultKey).decryptBlob(
+    encryptedBlob,
+    context,
+    options,
+  );
+}
+
+class VaultSyncCryptoContext implements SyncCryptoContext {
+  private importedKey: CryptoKey | null = null;
+  private readonly usageKeys = new Map<string, CryptoKey>();
+  private disposed = false;
+
+  constructor(private readonly remoteVaultKey: Uint8Array) {}
+
+  async encryptMetadata(
+    metadata: SyncedEntryMetadata,
+    context: SyncMetadataCryptoContext,
+  ): Promise<string> {
+    const key = await this.getUsageKey("sync-metadata", ENVELOPE_VERSION);
+    return await encryptEnvelope(
+      key,
+      new TextEncoder().encode(serializeSyncedEntryMetadata(metadata)),
+      encodeMetadataAad(context),
+      ENVELOPE_VERSION,
+    );
+  }
+
+  async decryptMetadata(
+    encryptedMetadata: string,
+    context: SyncMetadataCryptoContext,
+  ): Promise<SyncedEntryMetadata> {
+    const key = await this.getUsageKey("sync-metadata", ENVELOPE_VERSION);
+    const plaintext = await decryptEnvelope(
+      key,
+      encryptedMetadata,
+      encodeMetadataAad(context),
+      ENVELOPE_VERSION,
+    );
+    return parseSyncedEntryMetadata(new TextDecoder().decode(plaintext));
+  }
+
+  async encryptBlob(
+    plaintext: Uint8Array,
+    context: SyncBlobCryptoContext,
+    options: SyncBlobEnvelopeOptions,
+  ): Promise<Uint8Array> {
+    switch (options.syncFormatVersion) {
+      case ENVELOPE_VERSION: {
+        const key = await this.getUsageKey("sync-blob", ENVELOPE_VERSION);
+        const envelope = await encryptEnvelope(
+          key,
+          plaintext,
+          encodeBlobAad(context, ENVELOPE_VERSION),
+          ENVELOPE_VERSION,
+        );
+        return new TextEncoder().encode(envelope);
+      }
+      case SYNC_BLOB_BINARY_ENVELOPE_VERSION:
+        return await this.encryptBinaryBlobEnvelope(plaintext, context);
+      default:
+        throwUnsupportedSyncBlobFormatVersion(options.syncFormatVersion);
+    }
+  }
+
+  async decryptBlob(
+    encryptedBlob: Uint8Array,
+    context: SyncBlobCryptoContext,
+    options: SyncBlobEnvelopeOptions,
+  ): Promise<Uint8Array> {
+    switch (options.syncFormatVersion) {
+      case ENVELOPE_VERSION:
+        return await decryptEnvelope(
+          await this.getUsageKey("sync-blob", ENVELOPE_VERSION),
+          new TextDecoder().decode(encryptedBlob),
+          encodeBlobAad(context, ENVELOPE_VERSION),
+          ENVELOPE_VERSION,
+        );
+      case SYNC_BLOB_BINARY_ENVELOPE_VERSION:
+        return await this.decryptBinaryBlobEnvelope(encryptedBlob, context);
+      default:
+        throwUnsupportedSyncBlobFormatVersion(options.syncFormatVersion);
+    }
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.importedKey = null;
+    this.usageKeys.clear();
+  }
+
+  private async encryptBinaryBlobEnvelope(
+    plaintext: Uint8Array,
+    context: SyncBlobCryptoContext,
+  ): Promise<Uint8Array> {
+    const nonce = randomBytes(AES_GCM_NONCE_BYTES);
+    const ciphertext = await encryptAesGcm(
+      await this.getUsageKey("sync-blob", SYNC_BLOB_BINARY_ENVELOPE_VERSION),
+      plaintext,
+      nonce,
+      encodeBlobAad(context, SYNC_BLOB_BINARY_ENVELOPE_VERSION),
+    );
+    const envelope = new Uint8Array(SYNC_BLOB_V2_CIPHERTEXT_OFFSET + ciphertext.byteLength);
+    envelope.set(SYNC_BLOB_V2_MAGIC, 0);
+    envelope[SYNC_BLOB_V2_VERSION_OFFSET] = SYNC_BLOB_BINARY_ENVELOPE_VERSION;
+    envelope.set(nonce, SYNC_BLOB_V2_NONCE_OFFSET);
+    envelope.set(ciphertext, SYNC_BLOB_V2_CIPHERTEXT_OFFSET);
+    return envelope;
+  }
+
+  private async decryptBinaryBlobEnvelope(
+    encryptedBlob: Uint8Array,
+    context: SyncBlobCryptoContext,
+  ): Promise<Uint8Array> {
+    const { nonce, ciphertext } = parseBinaryBlobEnvelope(encryptedBlob);
+    return await decryptAesGcm(
+      await this.getUsageKey("sync-blob", SYNC_BLOB_BINARY_ENVELOPE_VERSION),
+      ciphertext,
+      nonce,
+      encodeBlobAad(context, SYNC_BLOB_BINARY_ENVELOPE_VERSION),
+    );
+  }
+
+  private async getUsageKey(usage: string, envelopeVersion: number): Promise<CryptoKey> {
+    this.assertActive();
+    const cacheKey = `${usage}:v${envelopeVersion}`;
+    const cached = this.usageKeys.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const key = await deriveUsageKey(
+      await this.getImportedKey(),
+      usage,
+      envelopeVersion,
+    );
+    this.usageKeys.set(cacheKey, key);
+    return key;
+  }
+
+  private async getImportedKey(): Promise<CryptoKey> {
+    this.assertActive();
+    if (!this.importedKey) {
+      this.importedKey = await crypto.subtle.importKey(
+        "raw",
+        toArrayBuffer(this.remoteVaultKey),
+        "HKDF",
+        false,
+        ["deriveKey"],
       );
-    case SYNC_BLOB_BINARY_ENVELOPE_VERSION:
-      return await decryptBinaryBlobEnvelope(remoteVaultKey, encryptedBlob, context);
-    default:
-      throwUnsupportedSyncBlobFormatVersion(options.syncFormatVersion);
+    }
+    return this.importedKey;
+  }
+
+  private assertActive(): void {
+    if (this.disposed) {
+      throw new Error("Sync crypto context has been disposed.");
+    }
   }
 }
 
 async function encryptEnvelope(
-  remoteVaultKey: Uint8Array,
-  usage: string,
+  key: CryptoKey,
   plaintext: Uint8Array,
   additionalData: Uint8Array,
   envelopeVersion = ENVELOPE_VERSION,
 ): Promise<string> {
-  const key = await deriveUsageKey(remoteVaultKey, usage, envelopeVersion);
   const nonce = randomBytes(AES_GCM_NONCE_BYTES);
   const ciphertext = await crypto.subtle.encrypt(
     {
@@ -132,14 +281,12 @@ async function encryptEnvelope(
 }
 
 async function decryptEnvelope(
-  remoteVaultKey: Uint8Array,
-  usage: string,
+  key: CryptoKey,
   serializedEnvelope: string,
   additionalData: Uint8Array,
   envelopeVersion = ENVELOPE_VERSION,
 ): Promise<Uint8Array> {
   const envelope = parseEncryptedEnvelope(serializedEnvelope, envelopeVersion);
-  const key = await deriveUsageKey(remoteVaultKey, usage, envelopeVersion);
   const plaintext = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
@@ -153,54 +300,12 @@ async function decryptEnvelope(
   return new Uint8Array(plaintext);
 }
 
-async function encryptBinaryBlobEnvelope(
-  remoteVaultKey: Uint8Array,
-  plaintext: Uint8Array,
-  context: SyncBlobCryptoContext,
-): Promise<Uint8Array> {
-  const nonce = randomBytes(AES_GCM_NONCE_BYTES);
-  const ciphertext = await encryptAesGcm(
-    remoteVaultKey,
-    "sync-blob",
-    plaintext,
-    nonce,
-    encodeBlobAad(context, SYNC_BLOB_BINARY_ENVELOPE_VERSION),
-    SYNC_BLOB_BINARY_ENVELOPE_VERSION,
-  );
-  const envelope = new Uint8Array(SYNC_BLOB_V2_CIPHERTEXT_OFFSET + ciphertext.byteLength);
-  envelope.set(SYNC_BLOB_V2_MAGIC, 0);
-  envelope[SYNC_BLOB_V2_VERSION_OFFSET] = SYNC_BLOB_BINARY_ENVELOPE_VERSION;
-  envelope.set(nonce, SYNC_BLOB_V2_NONCE_OFFSET);
-  envelope.set(ciphertext, SYNC_BLOB_V2_CIPHERTEXT_OFFSET);
-  return envelope;
-}
-
-async function decryptBinaryBlobEnvelope(
-  remoteVaultKey: Uint8Array,
-  encryptedBlob: Uint8Array,
-  context: SyncBlobCryptoContext,
-): Promise<Uint8Array> {
-  const { nonce, ciphertext } = parseBinaryBlobEnvelope(encryptedBlob);
-  const plaintext = await decryptAesGcm(
-    remoteVaultKey,
-    "sync-blob",
-    ciphertext,
-    nonce,
-    encodeBlobAad(context, SYNC_BLOB_BINARY_ENVELOPE_VERSION),
-    SYNC_BLOB_BINARY_ENVELOPE_VERSION,
-  );
-  return plaintext;
-}
-
 async function encryptAesGcm(
-  remoteVaultKey: Uint8Array,
-  usage: string,
+  key: CryptoKey,
   plaintext: Uint8Array,
   nonce: Uint8Array,
   additionalData: Uint8Array,
-  envelopeVersion: number,
 ): Promise<Uint8Array> {
-  const key = await deriveUsageKey(remoteVaultKey, usage, envelopeVersion);
   const ciphertext = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",
@@ -214,14 +319,11 @@ async function encryptAesGcm(
 }
 
 async function decryptAesGcm(
-  remoteVaultKey: Uint8Array,
-  usage: string,
+  key: CryptoKey,
   ciphertext: Uint8Array,
   nonce: Uint8Array,
   additionalData: Uint8Array,
-  envelopeVersion: number,
 ): Promise<Uint8Array> {
-  const key = await deriveUsageKey(remoteVaultKey, usage, envelopeVersion);
   const plaintext = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
@@ -235,18 +337,10 @@ async function decryptAesGcm(
 }
 
 async function deriveUsageKey(
-  remoteVaultKey: Uint8Array,
+  importedKey: CryptoKey,
   usage: string,
   envelopeVersion: number,
 ): Promise<CryptoKey> {
-  const imported = await crypto.subtle.importKey(
-    "raw",
-    toArrayBuffer(remoteVaultKey),
-    "HKDF",
-    false,
-    ["deriveKey"],
-  );
-
   return await crypto.subtle.deriveKey(
     {
       name: "HKDF",
@@ -254,7 +348,7 @@ async function deriveUsageKey(
       salt: toArrayBuffer(KEY_USAGE_SALT),
       info: new TextEncoder().encode(`${usage}:v${envelopeVersion}`),
     },
-    imported,
+    importedKey,
     {
       name: "AES-GCM",
       length: 256,

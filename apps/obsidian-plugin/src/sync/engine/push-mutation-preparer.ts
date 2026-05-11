@@ -1,6 +1,9 @@
 import { SyncBlobClient, SyncBlobUploadError } from "../remote/blob-client";
 import { hashBytes } from "../core/content";
-import { decryptSyncMetadata, encryptSyncBlob } from "../core/crypto";
+import {
+  createSyncCryptoContext,
+  type SyncCryptoContext,
+} from "../core/crypto";
 import { queueLocalUpsertMutation } from "../core/mutation-queue";
 import type { SyncTokenResponse } from "../remote/client";
 import type { PendingMutationRow } from "../store/store";
@@ -16,6 +19,7 @@ import {
 
 export class PushMutationPreparer {
   private readonly blobClient: SyncBlobClient;
+  private fallbackCryptoContext: SyncCryptoContext | null = null;
 
   constructor(private readonly deps: PushMutationCommitterDeps) {
     this.blobClient = deps.blobClient ?? new SyncBlobClient();
@@ -28,21 +32,22 @@ export class PushMutationPreparer {
     maxFileSizeBytes: number,
     storageAvailableBytes: number | null = null,
   ): Promise<PreparePushMutationResult> {
+    const syncCrypto = this.getSyncCryptoContext();
+    const metadata = await syncCrypto.decryptMetadata(
+      mutation.encryptedMetadata,
+      metadataContextFromMutation(mutation),
+    );
+
     if (mutation.op === "delete") {
       return {
         commitPayload: toCommitPayload(mutation),
+        metadata,
         localHash: null,
         encryptedBytes: null,
         storageBytesAdded: 0,
       };
     }
 
-    const remoteVaultKey = this.deps.getRemoteVaultKey();
-    const metadata = await decryptSyncMetadata(
-      remoteVaultKey,
-      mutation.encryptedMetadata,
-      metadataContextFromMutation(mutation),
-    );
     const bytes = await this.deps.fileReader.readBytes(metadata.path);
     if (!mutation.blobId) {
       throw new Error(`Upsert mutation ${mutation.mutationId} is missing a blobId.`);
@@ -59,7 +64,7 @@ export class PushMutationPreparer {
       return null;
     }
     const blobId = mutation.blobId;
-    const encryptedBytes = await encryptSyncBlob(remoteVaultKey, bytes, { blobId }, {
+    const encryptedBytes = await syncCrypto.encryptBlob(bytes, { blobId }, {
       syncFormatVersion: token.syncFormatVersion,
     });
     const storageBytesAdded =
@@ -128,10 +133,20 @@ export class PushMutationPreparer {
         blobId,
         encryptedMetadata: mutation.encryptedMetadata,
       },
+      metadata,
       localHash: mutation.hash,
       encryptedBytes,
       storageBytesAdded,
     };
+  }
+
+  private getSyncCryptoContext(): SyncCryptoContext {
+    if (this.deps.getSyncCryptoContext) {
+      return this.deps.getSyncCryptoContext();
+    }
+
+    this.fallbackCryptoContext ??= createSyncCryptoContext(this.deps.getRemoteVaultKey());
+    return this.fallbackCryptoContext;
   }
 
   private async blockOversizedUpsert(

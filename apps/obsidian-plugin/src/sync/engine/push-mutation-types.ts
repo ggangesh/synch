@@ -1,5 +1,7 @@
 import type { SyncBlobClient } from "../remote/blob-client";
 import type { ConflictFileWriter } from "../core/conflict-file";
+import type { SyncedEntryMetadata } from "../core/content";
+import type { SyncCryptoContext } from "../core/crypto";
 import type {
   CommitAcceptedResult,
   CommitMutationPayload,
@@ -17,6 +19,7 @@ import type { SyncProgressCounts } from "../store/store";
 export interface PushMutationCommitterDeps {
   getApiBaseUrl: () => string;
   getRemoteVaultKey: () => Uint8Array;
+  getSyncCryptoContext?: () => SyncCryptoContext;
   fileReader: LocalFileReader;
   conflictFileWriter?: ConflictFileWriter;
   blobClient?: SyncBlobClient;
@@ -68,6 +71,7 @@ export type PushMutationCommitResult =
 
 export interface PreparedPushMutation {
   commitPayload: CommitMutationPayload;
+  metadata: SyncedEntryMetadata;
   localHash: string | null;
   encryptedBytes: Uint8Array | null;
   storageBytesAdded: number;

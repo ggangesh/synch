@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import type { CommitMutationPayload } from "../../../remote/realtime-client";
+import {
+  SyncRealtimeError,
+  type CommitMutationPayload,
+} from "../../../remote/realtime-client";
 import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncPushService } from "../../push-service";
 import {
@@ -167,6 +170,98 @@ describe("SyncPushService drain: batching", () => {
     expect(maxActiveUploads).toBe(2);
     expect(await store.listDirtyEntries()).toEqual([]);
     await store.close();
+  });
+
+  it("keeps crypto context scoped to each overlapping push call", async () => {
+    const firstPlugin = createTestPlugin();
+    const secondPlugin = createTestPlugin();
+    const firstStore = await createInitializedTestSyncStore(firstPlugin);
+    const secondStore = await createInitializedTestSyncStore(secondPlugin);
+    await firstStore.markEntryDirty({
+      mutationId: "mutation-delete-first",
+      entryId: "entry-delete-first",
+      op: "delete",
+      baseRevision: 1,
+      blobId: null,
+      hash: null,
+      encryptedMetadata: await encryptMutationMetadata({
+        entryId: "entry-delete-first",
+        baseRevision: 1,
+        op: "delete",
+        blobId: null,
+        path: "Folder/first.md",
+      }),
+      createdAt: 1,
+    });
+    await secondStore.markEntryDirty({
+      mutationId: "mutation-delete-second",
+      entryId: "entry-delete-second",
+      op: "delete",
+      baseRevision: 1,
+      blobId: null,
+      hash: null,
+      encryptedMetadata: await encryptMutationMetadata({
+        entryId: "entry-delete-second",
+        baseRevision: 1,
+        op: "delete",
+        blobId: null,
+        path: "Folder/second.md",
+      }),
+      createdAt: 1,
+    });
+
+    let currentStore = firstStore;
+    const firstCommit = createDeferred<void>();
+    let firstCommitStarted = false;
+    const firstSession = createPushSession(async () => {
+      firstCommitStarted = true;
+      await firstCommit.promise;
+      throw new SyncRealtimeError(
+        "stale_revision",
+        "expected base revision 0 but received 1",
+        { expectedBaseRevision: 0, receivedBaseRevision: 1 },
+      );
+    });
+    const secondSession = createPushSession(async () => {
+      throw new SyncRealtimeError(
+        "stale_revision",
+        "expected base revision 0 but received 1",
+        { expectedBaseRevision: 0, receivedBaseRevision: 1 },
+      );
+    });
+    const service = new SyncPushService({
+      getApiBaseUrl: () => "http://127.0.0.1:8787",
+      getSyncToken: async () => createToken(),
+      getSyncStore: () => currentStore,
+      getRemoteVaultKey: () => TEST_VAULT_KEY,
+      fileReader: {
+        async readBytes() {
+          throw new Error("delete mutations should not read bytes");
+        },
+      },
+      onProgress: ignoreProgress,
+    });
+
+    const firstPush = service.pushPendingMutations(firstSession);
+    await waitFor(() => firstCommitStarted);
+    currentStore = secondStore;
+    await expect(service.pushPendingMutations(secondSession)).resolves.toMatchObject({
+      mutationsPushed: 0,
+      shouldPullAfterPush: false,
+      hasMore: false,
+    });
+
+    firstCommit.resolve();
+    await expect(firstPush).resolves.toMatchObject({
+      mutationsPushed: 0,
+      shouldPullAfterPush: false,
+      hasMore: false,
+    });
+    expect(await firstStore.listDirtyEntries()).toEqual([]);
+    expect(await secondStore.listDirtyEntries()).toEqual([]);
+
+    await firstStore.close();
+    await secondStore.close();
   });
 });
 

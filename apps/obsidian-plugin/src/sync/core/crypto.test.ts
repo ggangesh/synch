@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createSyncCryptoContext,
   decryptSyncBlob,
   decryptSyncMetadata,
   encryptSyncBlob,
@@ -69,6 +70,42 @@ describe("sync crypto", () => {
     await expect(
       decryptSyncBlob(TEST_VAULT_KEY, encrypted, TEST_BLOB_CONTEXT, TEST_BLOB_V2_OPTIONS),
     ).resolves.toEqual(plaintext);
+  });
+
+  it("reuses a vault-scoped crypto context across payload types", async () => {
+    const context = createSyncCryptoContext(TEST_VAULT_KEY);
+    const metadata = await context.encryptMetadata({
+      path: "Folder/context.md",
+      hash: "hash-context",
+    }, TEST_METADATA_CONTEXT);
+    const blob = await context.encryptBlob(
+      new Uint8Array([7, 8, 9]),
+      TEST_BLOB_CONTEXT,
+      TEST_BLOB_V2_OPTIONS,
+    );
+
+    await expect(context.decryptMetadata(metadata, TEST_METADATA_CONTEXT)).resolves.toEqual({
+      path: "Folder/context.md",
+      hash: "hash-context",
+    });
+    await expect(
+      context.decryptBlob(blob, TEST_BLOB_CONTEXT, TEST_BLOB_V2_OPTIONS),
+    ).resolves.toEqual(new Uint8Array([7, 8, 9]));
+  });
+
+  it("rejects use after disposing a vault-scoped crypto context", async () => {
+    const context = createSyncCryptoContext(TEST_VAULT_KEY);
+    await context.encryptBlob(
+      new Uint8Array([1]),
+      TEST_BLOB_CONTEXT,
+      TEST_BLOB_OPTIONS,
+    );
+
+    context.dispose();
+
+    await expect(
+      context.encryptBlob(new Uint8Array([2]), TEST_BLOB_CONTEXT, TEST_BLOB_OPTIONS),
+    ).rejects.toThrow("Sync crypto context has been disposed.");
   });
 
   it("rejects unsupported sync blob format versions", async () => {

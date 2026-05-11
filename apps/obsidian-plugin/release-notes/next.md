@@ -6,6 +6,8 @@
 
 ## Changed
 
+- Sync push processing now reuses vault-scoped crypto work during a push, reducing repeated encryption setup for larger batches.
+
 ## Fixed
 
 - Signing out now disconnects the active remote vault on this device first.

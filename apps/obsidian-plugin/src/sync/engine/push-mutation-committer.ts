@@ -1,5 +1,8 @@
 import { writeConflictCopy } from "../core/conflict-file";
-import { decryptSyncMetadata } from "../core/crypto";
+import {
+  createSyncCryptoContext,
+  type SyncCryptoContext,
+} from "../core/crypto";
 import type { SyncTokenResponse } from "../remote/client";
 import {
   type CommitAcceptedResult,
@@ -41,6 +44,7 @@ export type {
 
 export class PushMutationCommitter {
   private readonly mutationPreparer: PushMutationPreparer;
+  private fallbackCryptoContext: SyncCryptoContext | null = null;
 
   constructor(private readonly deps: PushMutationCommitterDeps) {
     this.mutationPreparer = new PushMutationPreparer(deps);
@@ -193,11 +197,7 @@ export class PushMutationCommitter {
     prepared: PreparedPushMutation,
     accepted: CommitAcceptedResult,
   ): Promise<AcceptedPushMutationRow> {
-    const metadata = await decryptSyncMetadata(
-      this.deps.getRemoteVaultKey(),
-      mutation.encryptedMetadata,
-      metadataContextFromMutation(mutation),
-    );
+    const metadata = prepared.metadata;
 
     const acceptedAt = Date.now();
     const remoteCacheBlob =
@@ -235,8 +235,7 @@ export class PushMutationCommitter {
       return null;
     }
 
-    const metadata = await decryptSyncMetadata(
-      this.deps.getRemoteVaultKey(),
+    const metadata = await this.getSyncCryptoContext().decryptMetadata(
       mutation.encryptedMetadata,
       metadataContextFromMutation(mutation),
     );
@@ -257,6 +256,15 @@ export class PushMutationCommitter {
     };
     this.deps.onConflict?.(event);
     return event;
+  }
+
+  private getSyncCryptoContext(): SyncCryptoContext {
+    if (this.deps.getSyncCryptoContext) {
+      return this.deps.getSyncCryptoContext();
+    }
+
+    this.fallbackCryptoContext ??= createSyncCryptoContext(this.deps.getRemoteVaultKey());
+    return this.fallbackCryptoContext;
   }
 
   private async writeConflictCopy(path: string, bytes: Uint8Array): Promise<string> {

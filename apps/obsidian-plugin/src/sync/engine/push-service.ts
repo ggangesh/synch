@@ -1,5 +1,9 @@
 import { SyncBlobClient } from "../remote/blob-client";
 import type { ConflictFileWriter } from "../core/conflict-file";
+import {
+  createSyncCryptoContext,
+  type SyncCryptoContext,
+} from "../core/crypto";
 import type { SyncTokenResponse } from "../remote/client";
 import type {
   CommitMutationBatchResult,
@@ -66,19 +70,7 @@ export interface PushPendingMutationsResult {
 }
 
 export class SyncPushService {
-  private readonly mutationCommitter: PushMutationCommitter;
-
-  constructor(private readonly deps: SyncPushServiceDeps) {
-    this.mutationCommitter = new PushMutationCommitter({
-      getApiBaseUrl: () => this.deps.getApiBaseUrl(),
-      getRemoteVaultKey: () => this.deps.getRemoteVaultKey(),
-      fileReader: this.deps.fileReader,
-      conflictFileWriter: this.deps.conflictFileWriter,
-      blobClient: this.deps.blobClient,
-      onConflict: this.deps.onConflict,
-      now: this.deps.now,
-    });
-  }
+  constructor(private readonly deps: SyncPushServiceDeps) {}
 
   async pushPendingMutations(
     session: SyncRealtimeSession,
@@ -105,6 +97,12 @@ export class SyncPushService {
     let stopAfterCurrentBatch = false;
     let stopReason: PushPendingMutationsResult["stopReason"];
 
+    const remoteVaultKey = this.deps.getRemoteVaultKey();
+    const syncCryptoContext = createSyncCryptoContext(remoteVaultKey);
+    const mutationCommitter = this.createMutationCommitter(
+      remoteVaultKey,
+      syncCryptoContext,
+    );
     try {
       while (processedMutations < DEFAULT_PUSH_DRAIN_LIMIT) {
         const remainingBudget = DEFAULT_PUSH_DRAIN_LIMIT - processedMutations;
@@ -117,6 +115,7 @@ export class SyncPushService {
         }
 
         const preparedMutations = await this.preparePendingMutations(
+          mutationCommitter,
           store,
           token,
           session,
@@ -178,7 +177,7 @@ export class SyncPushService {
 
           if (batchResult.status === "accepted") {
             acceptedPushMutations.push(
-              await this.mutationCommitter.buildAcceptedPushMutation(
+              await mutationCommitter.buildAcceptedPushMutation(
                 mutation,
                 prepared,
                 batchResult,
@@ -196,11 +195,11 @@ export class SyncPushService {
         }
 
         await store.applyAcceptedPushBatch(acceptedPushMutations, {
-          remoteVaultKey: this.deps.getRemoteVaultKey(),
+          remoteVaultKey,
         });
 
         for (const { mutation, result: batchResult } of rejectedPushMutations) {
-          const result = await this.mutationCommitter.handleRejectedPreparedMutation(
+          const result = await mutationCommitter.handleRejectedPreparedMutation(
             store,
             mutation,
             batchResult,
@@ -239,6 +238,7 @@ export class SyncPushService {
         shouldPullAfterPush ||
         acceptedCursors.some((acceptedCursor) => acceptedCursor > checkpointCursor);
     } finally {
+      syncCryptoContext.dispose();
       await store.flush();
     }
 
@@ -299,7 +299,24 @@ export class SyncPushService {
     await this.deps.onProgress(progress);
   }
 
+  private createMutationCommitter(
+    remoteVaultKey: Uint8Array,
+    syncCryptoContext: SyncCryptoContext,
+  ): PushMutationCommitter {
+    return new PushMutationCommitter({
+      getApiBaseUrl: () => this.deps.getApiBaseUrl(),
+      getRemoteVaultKey: () => remoteVaultKey,
+      getSyncCryptoContext: () => syncCryptoContext,
+      fileReader: this.deps.fileReader,
+      conflictFileWriter: this.deps.conflictFileWriter,
+      blobClient: this.deps.blobClient,
+      onConflict: this.deps.onConflict,
+      now: this.deps.now,
+    });
+  }
+
   private async preparePendingMutations(
+    mutationCommitter: PushMutationCommitter,
     store: SyncPushStore,
     token: SyncTokenResponse,
     session: SyncRealtimeSession,
@@ -315,7 +332,7 @@ export class SyncPushService {
       this.deps.prepareConcurrency ?? DEFAULT_PUSH_PREPARE_CONCURRENCY,
       async (mutation) => ({
         mutation,
-        prepared: await this.mutationCommitter.prepareMutationForCommit(
+        prepared: await mutationCommitter.prepareMutationForCommit(
           store,
           token,
           mutation,
