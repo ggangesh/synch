@@ -11,7 +11,11 @@ interface Props {
 const { locale } = Astro.props;
 const t = ui[locale].home;
 const repositoryUrl = "https://github.com/hjinco/synch";
-const demoPlaybackId = "X02Xss3kvaRlmCjOmB00zCoKNnHZdPzqpTZqggJ301PMVk";
+const koDemoPlaybackId = "X02Xss3kvaRlmCjOmB00zCoKNnHZdPzqpTZqggJ301PMVk";
+const defaultDemoPlaybackId =
+  "wLFfexVomR006ejrrI0202jexidCGpEXbzuf801AKMlPh024";
+const demoPlaybackId =
+  locale === "ko" ? koDemoPlaybackId : defaultDemoPlaybackId;
 const selfHostingHref = localizedPath(locale, "/self-hosting");
 const apiUrl = import.meta.env.PUBLIC_API_URL || "";
 const authBaseUrl = apiUrl || Astro.url.origin;
@@ -23,7 +27,8 @@ signupUrl.searchParams.set("lang", locale);
 ---
 
 <Layout locale={locale}>
-  <script is:inline src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/@mux/mux-player" defer
+  ></script>
 
   <div class="max-w-2xl mx-auto px-6 w-full flex-1 flex flex-col">
     <Header locale={locale} />
@@ -65,9 +70,8 @@ signupUrl.searchParams.set("lang", locale);
             muted
             loop
             playsinline
-            class="aspect-video w-full rounded-md border border-zinc-800/80 bg-zinc-950 shadow-2xl shadow-black/30"
-            style="--controls: none;"
-          ></mux-player>
+            class="aspect-video w-full rounded-md border overflow-hidden border-zinc-800/80 bg-zinc-950 shadow-2xl shadow-black/30"
+            style="--controls: none; --media-object-fit: cover;"></mux-player>
         </div>
       </div>
 
@@ -174,7 +178,9 @@ signupUrl.searchParams.set("lang", locale);
       <div class="mt-32 space-y-6">
         <div class="w-8 h-px bg-zinc-800"></div>
         <div class="max-w-xl space-y-4">
-          <h2 class="text-xl text-zinc-300 font-normal">{t.selfHosting.title}</h2>
+          <h2 class="text-xl text-zinc-300 font-normal">
+            {t.selfHosting.title}
+          </h2>
           <p class="text-zinc-500 leading-relaxed">{t.selfHosting.body}</p>
           <a
             href={selfHostingHref}
@@ -199,7 +205,9 @@ signupUrl.searchParams.set("lang", locale);
                   <h3 class="text-zinc-300 font-medium mb-3 group-hover:text-zinc-200">
                     {post.title}
                   </h3>
-                  <p class="text-sm text-zinc-500 leading-relaxed">{post.body}</p>
+                  <p class="text-sm text-zinc-500 leading-relaxed">
+                    {post.body}
+                  </p>
                 </a>
               ))}
             </div>
