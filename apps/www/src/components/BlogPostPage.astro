@@ -90,13 +90,19 @@ const jsonLd = {
     @apply mb-0;
   }
   .blog-content pre {
-    @apply overflow-x-auto rounded-md border border-zinc-800/70 bg-zinc-950 px-4 py-4 my-8 text-sm leading-6 text-zinc-300;
+    @apply overflow-x-auto rounded-md border border-zinc-800/70 bg-zinc-900 px-4 py-4 my-8 text-sm leading-6 text-zinc-100;
+    background-color: #18181b !important;
+    color: #f4f4f5 !important;
   }
   .blog-content code {
     @apply rounded bg-zinc-800/50 px-1.5 py-0.5 text-sm text-zinc-300 font-mono;
   }
   .blog-content pre code {
-    @apply bg-transparent p-0 text-zinc-400;
+    @apply bg-transparent p-0 text-zinc-100;
+    color: #f4f4f5 !important;
+  }
+  .blog-content pre span {
+    color: #f4f4f5 !important;
   }
   .blog-content img {
     @apply my-10 rounded-md border border-zinc-800/60;
