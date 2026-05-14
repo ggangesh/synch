@@ -88,4 +88,3 @@ jobs:
             apps/obsidian-plugin/dist/main.js
             apps/obsidian-plugin/dist/manifest.json
             apps/obsidian-plugin/dist/styles.css
-            apps/obsidian-plugin/dist/versions.json

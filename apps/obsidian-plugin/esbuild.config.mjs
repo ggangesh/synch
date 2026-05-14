@@ -47,10 +47,10 @@ const shared = {
 
 async function stageReleaseArtifacts() {
   await fs.mkdir(releaseDir, { recursive: true });
+  await fs.rm(path.join(releaseDir, "versions.json"), { force: true });
   await Promise.all([
     fs.copyFile(path.join(pluginRoot, "manifest.json"), path.join(releaseDir, "manifest.json")),
     fs.copyFile(path.join(pluginRoot, "styles.css"), path.join(releaseDir, "styles.css")),
-    fs.copyFile(path.join(pluginRoot, "versions.json"), path.join(releaseDir, "versions.json")),
   ]);
 }
 

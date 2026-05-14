@@ -20,12 +20,12 @@ if (!manifest.version || !manifest.minAppVersion) {
 versions[manifest.version] = manifest.minAppVersion;
 
 await fs.mkdir(releaseDir, { recursive: true });
+await fs.rm(path.join(releaseDir, "versions.json"), { force: true });
 await Promise.all([
   writeJson(versionsPath, versions),
   writeJson(path.join(repoRoot, "manifest.json"), manifest),
   writeJson(path.join(repoRoot, "versions.json"), versions),
   writeJson(path.join(releaseDir, "manifest.json"), manifest),
-  writeJson(path.join(releaseDir, "versions.json"), versions),
   fs.copyFile(path.join(pluginRoot, "styles.css"), path.join(releaseDir, "styles.css")),
 ]);
 
