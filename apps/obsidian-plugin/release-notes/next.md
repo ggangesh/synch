@@ -4,4 +4,6 @@
 
 ## Changed
 
+- Show a confirmation after saving a self-hosted server URL.
+
 ## Fixed

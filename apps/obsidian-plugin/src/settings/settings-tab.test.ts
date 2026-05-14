@@ -5,6 +5,7 @@ import {
   getButtonComponents,
   getCreatedElements,
   getCreatedElementTexts,
+  getNotices,
   getProgressBarComponents,
   getSettingClasses,
   getSettingDescriptions,
@@ -190,6 +191,26 @@ describe("SynchSettingTab", () => {
 
     await saveButton?.click();
     expect(updateApiBaseUrl).toHaveBeenCalledWith("https://custom.synch.test");
+    expect(getNotices()).toContainEqual({ message: "Server URL saved." });
+  });
+
+  it("does not show the self-hosted server URL saved notice when saving fails", async () => {
+    const updateApiBaseUrl = vi.fn(async () => {
+      throw new Error("API base URL must be a valid http:// or https:// URL.");
+    });
+    const tab = createSettingsTab({
+      getApiBaseUrl: () => "https://api.synch.test",
+      updateApiBaseUrl,
+    });
+
+    tab.display();
+
+    await getTextComponents()[0]?.change("not-a-url");
+    await getButtonComponents()[1]?.click();
+
+    expect(getNotices()).toEqual([
+      { message: "API base URL must be a valid http:// or https:// URL." },
+    ]);
   });
 
   it("does not show the default API base URL before sign-in", async () => {

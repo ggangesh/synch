@@ -95,6 +95,7 @@ export function renderApiBaseUrlSetting(
         .onClick(async () => {
           try {
             await controller.updateApiBaseUrl(apiBaseUrlInput);
+            new Notice(t("server.saved"));
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             new Notice(message);
