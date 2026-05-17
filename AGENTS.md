@@ -9,6 +9,15 @@ Synch is an end-to-end encrypted Obsidian Sync alternative. The repository is a 
 
 Prioritize preserving end-to-end encryption guarantees, vault safety, and compatibility with Obsidian plugin behavior.
 
+## Engineering Approach
+
+Favor long-term maintainability over quick patches. Do not paper over symptoms with narrow, brittle fixes when the surrounding design needs adjustment.
+
+- Understand the relevant module boundaries, data flow, and existing abstractions before changing code.
+- Prefer cohesive fixes that address the underlying cause while preserving the current architecture and user-facing behavior.
+- Keep changes scoped, but make the scope large enough to avoid duplicating logic, bypassing invariants, or adding special cases that future work will have to unwind.
+- When a short-term workaround is unavoidable, document the reason, the tradeoff, and the follow-up needed to remove it.
+
 ## Package Manager
 
 Use `pnpm`. Do not use `npm` or `yarn`.
