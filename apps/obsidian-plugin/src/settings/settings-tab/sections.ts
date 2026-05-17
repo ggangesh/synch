@@ -113,6 +113,7 @@ export function renderSyncStatusSetting(
   containerEl: HTMLElement,
   controller: SynchSettingsController,
   hasConnectedRemoteVault: boolean,
+  refresh: RefreshSettings,
 ): SyncStatusSettingControls | null {
   const updateStatus = controller.getPluginUpdateStatus();
   if (updateStatus.state === "update_required") {
@@ -125,7 +126,19 @@ export function renderSyncStatusSetting(
   if (!hasConnectedRemoteVault) {
     new Setting(containerEl)
       .setName(t("sync.label"))
-      .setDesc(t("sync.connectRemoteVault"));
+      .setDesc(t("sync.connectRemoteVault"))
+      .addButton((button) =>
+        button.setButtonText(t("vault.create")).onClick(async () => {
+          await controller.createRemoteVaultFromPrompt();
+          refresh();
+        }),
+      )
+      .addButton((button) =>
+        button.setButtonText(t("vault.connect")).onClick(async () => {
+          await controller.connectRemoteVaultFromPrompt();
+          refresh();
+        }),
+      );
     return null;
   }
 
@@ -402,68 +415,55 @@ export function renderRemoteVaultSettings(
       }),
     );
 
+  if (!hasConnectedRemoteVault) {
+    return;
+  }
+
   const vaultSetting = new Setting(containerEl)
     .setName(t("vault.setting"))
     .setDesc(controller.getRemoteVaultStatusLabel());
 
-  if (hasConnectedRemoteVault) {
-    vaultSetting.addButton((button) =>
-      button.setButtonText(t("vault.disconnect")).onClick(async () => {
-        await controller.disconnectRemoteVault();
-        refresh();
+  vaultSetting.addButton((button) =>
+    button.setButtonText(t("vault.disconnect")).onClick(async () => {
+      await controller.disconnectRemoteVault();
+      refresh();
+    }),
+  );
+
+  new Setting(containerEl)
+    .setName(t("deleted.header"))
+    .setDesc(t("vault.deletedFilesDesc"))
+    .addButton((button) =>
+      button.setButtonText(t("vault.viewDeletedFiles")).onClick(() => {
+        new DeletedFilesModal(app, {
+          listDeletedFiles: async (before, limit) =>
+            await controller.listDeletedFiles(before, limit),
+          previewDeletedFile: async (entryId, fallbackPath) =>
+            await controller.previewDeletedFile(entryId, fallbackPath),
+          restoreDeletedFiles: async (files) => {
+            const result = await controller.restoreDeletedFiles(files);
+            refresh();
+            return result;
+          },
+          purgeDeletedFiles: async (files) => {
+            const result = await controller.purgeDeletedFiles(files);
+            refresh();
+            return result;
+          },
+        }).open();
       }),
     );
 
+  if (controller.getRemoteVaultSyncFormatVersion() === 1) {
     new Setting(containerEl)
-      .setName(t("deleted.header"))
-      .setDesc(t("vault.deletedFilesDesc"))
+      .setName(t("vault.formatUpgradeTitle"))
+      .setDesc(t("vault.formatUpgradeDesc"))
       .addButton((button) =>
-        button.setButtonText(t("vault.viewDeletedFiles")).onClick(() => {
-          new DeletedFilesModal(app, {
-            listDeletedFiles: async (before, limit) =>
-              await controller.listDeletedFiles(before, limit),
-            previewDeletedFile: async (entryId, fallbackPath) =>
-              await controller.previewDeletedFile(entryId, fallbackPath),
-            restoreDeletedFiles: async (files) => {
-              const result = await controller.restoreDeletedFiles(files);
-              refresh();
-              return result;
-            },
-            purgeDeletedFiles: async (files) => {
-              const result = await controller.purgeDeletedFiles(files);
-              refresh();
-              return result;
-            },
-          }).open();
+        button.setButtonText(t("vault.manageRemote")).onClick(() => {
+          controller.openRemoteVaultManagementPage();
         }),
       );
-
-    if (controller.getRemoteVaultSyncFormatVersion() === 1) {
-      new Setting(containerEl)
-        .setName(t("vault.formatUpgradeTitle"))
-        .setDesc(t("vault.formatUpgradeDesc"))
-        .addButton((button) =>
-          button.setButtonText(t("vault.manageRemote")).onClick(() => {
-            controller.openRemoteVaultManagementPage();
-          }),
-        );
-    }
-    return;
   }
-
-  vaultSetting
-    .addButton((button) =>
-      button.setButtonText(t("vault.create")).onClick(async () => {
-        await controller.createRemoteVaultFromPrompt();
-        refresh();
-      }),
-    )
-    .addButton((button) =>
-      button.setButtonText(t("vault.connect")).onClick(async () => {
-        await controller.connectRemoteVaultFromPrompt();
-        refresh();
-      }),
-    );
 }
 
 export function renderFileSyncSettings(

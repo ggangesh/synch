@@ -36,7 +36,7 @@ describe("SynchSettingTab sync status", () => {
     expect(getProgressBarComponents().map(({ value }) => value)).toEqual([0]);
   });
 
-  it("prompts users to connect a remote vault before showing sync progress", () => {
+  it("prompts users to create or connect a remote vault before showing sync progress", () => {
     const tab = createSettingsTab({
       hasAuthenticatedSession: () => true,
       hasConnectedRemoteVault: () => false,
@@ -56,12 +56,63 @@ describe("SynchSettingTab sync status", () => {
     tab.display();
 
     expect(getSettingNames()).toContain("Sync");
+    expect(getSettingNames()).not.toContain("Vault");
     expect(getSettingNames()).not.toContain("Storage");
     expect(getSettingDescriptions()[0]).toBe(
       "Connect a remote vault to start syncing.",
     );
+    expect(getButtonComponents().map((button) => button.text)).toContain("Create vault");
+    expect(getButtonComponents().map((button) => button.text)).toContain("Connect vault");
     expect(getProgressBarComponents()).toEqual([]);
     expect(getExtraButtonComponents()).toEqual([]);
+  });
+
+  it("refreshes settings after creating a vault from the sync section", async () => {
+    let hasConnectedRemoteVault = false;
+    const createRemoteVaultFromPrompt = vi.fn(async () => {
+      hasConnectedRemoteVault = true;
+    });
+    const tab = createSettingsTab({
+      hasAuthenticatedSession: () => true,
+      hasConnectedRemoteVault: () => hasConnectedRemoteVault,
+      createRemoteVaultFromPrompt,
+    });
+
+    tab.display();
+
+    await getButtonComponents()
+      .find((button) => button.text === "Create vault")
+      ?.click();
+
+    expect(createRemoteVaultFromPrompt).toHaveBeenCalledTimes(1);
+    expect(getSettingNames()).toContain("Vault");
+    expect(getButtonComponents().map((button) => button.text)).toContain(
+      "Disconnect vault",
+    );
+  });
+
+  it("refreshes settings after connecting a vault from the sync section", async () => {
+    let hasConnectedRemoteVault = false;
+    const connectRemoteVaultFromPrompt = vi.fn(async () => {
+      hasConnectedRemoteVault = true;
+    });
+    const tab = createSettingsTab({
+      hasAuthenticatedSession: () => true,
+      hasConnectedRemoteVault: () => hasConnectedRemoteVault,
+      connectRemoteVaultFromPrompt,
+    });
+
+    tab.display();
+
+    await getButtonComponents()
+      .find((button) => button.text === "Connect vault")
+      ?.click();
+
+    expect(connectRemoteVaultFromPrompt).toHaveBeenCalledTimes(1);
+    expect(getSettingNames()).toContain("Vault");
+    expect(getButtonComponents().map((button) => button.text)).toContain(
+      "Disconnect vault",
+    );
   });
 
   it("places authentication below sync after sign-in", () => {

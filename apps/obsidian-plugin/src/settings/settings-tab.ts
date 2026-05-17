@@ -100,6 +100,7 @@ export class SynchSettingTab extends PluginSettingTab {
         containerEl,
         this.controller,
         hasConnectedRemoteVault,
+        () => this.refresh(),
       );
     } else {
       new Setting(containerEl).setName(t("account")).setHeading();

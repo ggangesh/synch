@@ -33,7 +33,7 @@ describe("SynchSettingTab remote vault settings", () => {
     expect(buttonTexts).toContain("Manage remote vaults");
   });
 
-  it("places remote vault management below authentication", () => {
+  it("places remote vault management below authentication when no vault is connected", () => {
     const tab = createSettingsTab({
       hasAuthenticatedSession: () => true,
       isDeviceLoginInProgress: () => false,
@@ -42,7 +42,39 @@ describe("SynchSettingTab remote vault settings", () => {
     tab.display();
 
     const buttonTexts = getButtonComponents().map((button) => button.text);
-    expect(buttonTexts.slice(0, 2)).toEqual(["Sign out", "Manage remote vaults"]);
+    expect(buttonTexts.slice(0, 4)).toEqual([
+      "Create vault",
+      "Connect vault",
+      "Sign out",
+      "Manage remote vaults",
+    ]);
+  });
+
+  it("shows the vault field only after a vault is connected", () => {
+    const disconnected = createSettingsTab({
+      hasAuthenticatedSession: () => true,
+      hasConnectedRemoteVault: () => false,
+    });
+
+    disconnected.display();
+
+    expect(getSettingNames()).toContain("Vault management");
+    expect(getSettingNames()).not.toContain("Vault");
+
+    resetObsidianMocks();
+
+    const connected = createSettingsTab({
+      hasAuthenticatedSession: () => true,
+      hasConnectedRemoteVault: () => true,
+    });
+
+    connected.display();
+
+    expect(getSettingNames()).toContain("Vault management");
+    expect(getSettingNames()).toContain("Vault");
+    expect(getButtonComponents().map((button) => button.text)).toContain(
+      "Disconnect vault",
+    );
   });
 
   it("shows deleted file restore controls only for connected vaults", () => {
