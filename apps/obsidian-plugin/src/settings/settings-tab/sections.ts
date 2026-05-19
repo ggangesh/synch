@@ -483,7 +483,6 @@ export function renderFileSyncSettings(
     fileRules,
     "includeImages",
     controller,
-    refresh,
   );
   addFileRuleToggle(
     containerEl,
@@ -492,7 +491,6 @@ export function renderFileSyncSettings(
     fileRules,
     "includeAudio",
     controller,
-    refresh,
   );
   addFileRuleToggle(
     containerEl,
@@ -501,7 +499,6 @@ export function renderFileSyncSettings(
     fileRules,
     "includeVideos",
     controller,
-    refresh,
   );
   addFileRuleToggle(
     containerEl,
@@ -510,7 +507,6 @@ export function renderFileSyncSettings(
     fileRules,
     "includePdf",
     controller,
-    refresh,
   );
   addFileRuleToggle(
     containerEl,
@@ -519,7 +515,6 @@ export function renderFileSyncSettings(
     fileRules,
     "includeOtherFiles",
     controller,
-    refresh,
   );
 
   new Setting(containerEl)
@@ -628,7 +623,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "mainSettings",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -637,7 +631,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "appearance",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -646,7 +639,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "themesAndSnippets",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -655,7 +647,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "hotkeys",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -664,7 +655,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "corePluginList",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -673,7 +663,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "corePluginData",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -682,7 +671,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "communityPluginList",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -691,7 +679,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "communityPluginFiles",
     controller,
-    refresh,
   );
   addVaultConfigRuleToggle(
     containerEl,
@@ -700,7 +687,6 @@ function renderVaultConfigSyncSettings(
     rules,
     "communityPluginData",
     controller,
-    refresh,
   );
 }
 
@@ -711,7 +697,6 @@ function addVaultConfigRuleToggle<K extends keyof SynchVaultConfigSyncRules>(
   rules: SynchVaultConfigSyncRules,
   key: K,
   controller: SynchSettingsController,
-  refresh: RefreshSettings,
 ): void {
   new Setting(containerEl)
     .setName(name)
@@ -724,7 +709,6 @@ function addVaultConfigRuleToggle<K extends keyof SynchVaultConfigSyncRules>(
             key,
             value as SynchVaultConfigSyncRules[K],
           );
-          refresh();
         }),
     );
 }
@@ -736,7 +720,6 @@ function addFileRuleToggle<K extends keyof SynchFileRules>(
   fileRules: SynchFileRules,
   key: K,
   controller: SynchSettingsController,
-  refresh: RefreshSettings,
 ): void {
   new Setting(containerEl)
     .setName(name)
@@ -744,7 +727,6 @@ function addFileRuleToggle<K extends keyof SynchFileRules>(
     .addToggle((toggle) =>
       toggle.setValue(fileRules[key] as boolean).onChange(async (value) => {
         await controller.updateSyncFileRule(key, value as SynchFileRules[K]);
-        refresh();
       }),
     );
 }

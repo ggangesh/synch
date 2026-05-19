@@ -943,7 +943,6 @@ export class SynchPluginController implements SynchSettingsController {
       return;
     }
 
-    this.refreshUi();
     if (!this.isSyncEnabled()) {
       this.syncController.stopAutoSyncAndMarkPaused();
       return;
@@ -960,7 +959,6 @@ export class SynchPluginController implements SynchSettingsController {
       return;
     }
 
-    this.refreshUi();
     if (!this.isSyncEnabled()) {
       this.syncController.stopAutoSyncAndMarkPaused();
       return;
