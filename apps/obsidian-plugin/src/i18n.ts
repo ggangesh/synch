@@ -1,4 +1,5 @@
 import { getLanguage } from "obsidian";
+import type { VaultPasswordValidation } from "./remote-vault/password-policy";
 
 const en = {
     account: "Account",
@@ -164,6 +165,13 @@ const en = {
     "vault.passwordDescConnect": "Used locally to unwrap the vault key.",
     "vault.passwordDescCreate": "Used to wrap the vault key locally before upload.",
     "vault.passwordMismatch": "Passwords do not match.",
+    "vault.passwordRequired": "Password is required.",
+    "vault.passwordNoOuterSpaces": "Password cannot start or end with spaces.",
+    "vault.passwordMinLength": ({ count }: { count: number }) => `Password must be at least ${count} characters.`,
+    "vault.passwordMaxLength": ({ count }: { count: number }) => `Password must be ${count} characters or fewer.`,
+    "vault.passwordTooWeak": "Password is too easy to guess. Use a longer passphrase.",
+    "vault.passwordRepeated": "Password cannot be one repeated character.",
+    "vault.passwordSequence": "Password cannot be a simple sequence.",
     "vault.passwordPlaceholder": "Enter vault password",
     "vault.selected": ({ label }: { label: string }) => `Selected: ${label}`,
     "vault.setting": "Vault",
@@ -363,6 +371,13 @@ const messages = {
     "vault.passwordDescConnect": "이 기기에서 vault 키를 푸는 데 사용됩니다.",
     "vault.passwordDescCreate": "업로드 전에 vault 키를 로컬에서 감싸는 데 사용됩니다.",
     "vault.passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "vault.passwordRequired": "비밀번호가 필요합니다.",
+    "vault.passwordNoOuterSpaces": "비밀번호는 공백으로 시작하거나 끝날 수 없습니다.",
+    "vault.passwordMinLength": ({ count }: { count: number }) => `비밀번호는 최소 ${count}자 이상이어야 합니다.`,
+    "vault.passwordMaxLength": ({ count }: { count: number }) => `비밀번호는 ${count}자 이하여야 합니다.`,
+    "vault.passwordTooWeak": "비밀번호가 너무 추측하기 쉽습니다. 더 긴 암구호를 사용하세요.",
+    "vault.passwordRepeated": "비밀번호는 같은 문자 하나만 반복할 수 없습니다.",
+    "vault.passwordSequence": "비밀번호는 단순한 연속 문자열일 수 없습니다.",
     "vault.passwordPlaceholder": "Vault 비밀번호 입력",
     "vault.selected": ({ label }: { label: string }) => `선택됨: ${label}`,
     "vault.setting": "Vault",
@@ -560,6 +575,13 @@ const messages = {
     "vault.passwordDescConnect": "このデバイスでvaultキーをアンラップするために使用されます。",
     "vault.passwordDescCreate": "アップロード前にvaultキーをローカルでラップするために使用されます。",
     "vault.passwordMismatch": "パスワードが一致しません。",
+    "vault.passwordRequired": "パスワードは必須です。",
+    "vault.passwordNoOuterSpaces": "パスワードの先頭または末尾にスペースは使用できません。",
+    "vault.passwordMinLength": ({ count }: { count: number }) => `パスワードは${count}文字以上にしてください。`,
+    "vault.passwordMaxLength": ({ count }: { count: number }) => `パスワードは${count}文字以下にしてください。`,
+    "vault.passwordTooWeak": "パスワードは推測されやす過ぎます。より長いパスフレーズを使用してください。",
+    "vault.passwordRepeated": "パスワードに同じ1文字だけの繰り返しは使用できません。",
+    "vault.passwordSequence": "パスワードに単純な連続文字列は使用できません。",
     "vault.passwordPlaceholder": "Vaultパスワードを入力",
     "vault.selected": ({ label }: { label: string }) => `選択済み: ${label}`,
     "vault.setting": "Vault",
@@ -757,6 +779,13 @@ const messages = {
     "vault.passwordDescConnect": "用于在本地解封 vault 密钥。",
     "vault.passwordDescCreate": "用于在上传前于本地封装 vault 密钥。",
     "vault.passwordMismatch": "密码不匹配。",
+    "vault.passwordRequired": "密码为必填项。",
+    "vault.passwordNoOuterSpaces": "密码不能以空格开头或结尾。",
+    "vault.passwordMinLength": ({ count }: { count: number }) => `密码必须至少包含 ${count} 个字符。`,
+    "vault.passwordMaxLength": ({ count }: { count: number }) => `密码必须不超过 ${count} 个字符。`,
+    "vault.passwordTooWeak": "密码太容易被猜到。请使用更长的密码短语。",
+    "vault.passwordRepeated": "密码不能是同一个字符重复。",
+    "vault.passwordSequence": "密码不能是简单的连续序列。",
     "vault.passwordPlaceholder": "输入 vault 密码",
     "vault.selected": ({ label }: { label: string }) => `已选择：${label}`,
     "vault.setting": "Vault",
@@ -954,6 +983,13 @@ const messages = {
     "vault.passwordDescConnect": "用於在本機解封 vault 金鑰。",
     "vault.passwordDescCreate": "用於在上傳前於本機封裝 vault 金鑰。",
     "vault.passwordMismatch": "密碼不一致。",
+    "vault.passwordRequired": "密碼為必填。",
+    "vault.passwordNoOuterSpaces": "密碼不能以空格開頭或結尾。",
+    "vault.passwordMinLength": ({ count }: { count: number }) => `密碼必須至少包含 ${count} 個字元。`,
+    "vault.passwordMaxLength": ({ count }: { count: number }) => `密碼必須不超過 ${count} 個字元。`,
+    "vault.passwordTooWeak": "密碼太容易被猜到。請使用更長的密碼片語。",
+    "vault.passwordRepeated": "密碼不能是同一個字元重複。",
+    "vault.passwordSequence": "密碼不能是簡單的連續序列。",
     "vault.passwordPlaceholder": "輸入 vault 密碼",
     "vault.selected": ({ label }: { label: string }) => `已選擇：${label}`,
     "vault.setting": "Vault",
@@ -1012,4 +1048,25 @@ export function t<K extends SynchMessageKey>(
     return value(params as never);
   }
   return value;
+}
+
+export function formatVaultPasswordValidationError(
+  validation: Extract<VaultPasswordValidation, { ok: false }>,
+): string {
+  switch (validation.code) {
+    case "required":
+      return t("vault.passwordRequired");
+    case "outer_spaces":
+      return t("vault.passwordNoOuterSpaces");
+    case "min_length":
+      return t("vault.passwordMinLength", { count: validation.count ?? 0 });
+    case "max_length":
+      return t("vault.passwordMaxLength", { count: validation.count ?? 0 });
+    case "too_weak":
+      return t("vault.passwordTooWeak");
+    case "repeated_character":
+      return t("vault.passwordRepeated");
+    case "simple_sequence":
+      return t("vault.passwordSequence");
+  }
 }

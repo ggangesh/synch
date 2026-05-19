@@ -2,7 +2,7 @@ import {
   createPasswordWrappedRemoteVaultKey,
   unwrapRemoteVaultKeyWithPassword,
 } from "./crypto";
-import { t } from "../i18n";
+import { formatVaultPasswordValidationError, t } from "../i18n";
 import type { StoredRemoteVaultKeySecret } from "./device-storage";
 import { validateVaultPassword } from "./password-policy";
 import { RemoteVaultClient } from "./client";
@@ -249,16 +249,16 @@ function isCryptoOperationError(error: unknown): boolean {
 
 function validateCreateInput(input: CreateRemoteVaultInput): void {
   if (!input.name.trim()) {
-    throw new Error("Vault name is required.");
+    throw new Error(t("vault.nameRequired"));
   }
 
   const passwordValidation = validateVaultPassword(input.password);
   if (!passwordValidation.ok) {
-    throw new Error(passwordValidation.message);
+    throw new Error(formatVaultPasswordValidationError(passwordValidation));
   }
 
   if (input.password !== input.confirmPassword) {
-    throw new Error("Passwords do not match.");
+    throw new Error(t("vault.passwordMismatch"));
   }
 }
 

@@ -38,20 +38,38 @@ const WEAK_PASSWORD_TOKENS = [
 
 export type VaultPasswordValidation =
   | { ok: true }
-  | { ok: false; message: string };
+  | {
+      ok: false;
+      code:
+        | "required"
+        | "outer_spaces"
+        | "min_length"
+        | "max_length"
+        | "too_weak"
+        | "repeated_character"
+        | "simple_sequence";
+      count?: number;
+      message: string;
+    };
 
 export function validateVaultPassword(password: string): VaultPasswordValidation {
   if (!password) {
-    return { ok: false, message: "Password is required." };
+    return { ok: false, code: "required", message: "Password is required." };
   }
 
   if (password !== password.trim()) {
-    return { ok: false, message: "Password cannot start or end with spaces." };
+    return {
+      ok: false,
+      code: "outer_spaces",
+      message: "Password cannot start or end with spaces.",
+    };
   }
 
   if (password.length < MIN_VAULT_PASSWORD_LENGTH) {
     return {
       ok: false,
+      code: "min_length",
+      count: MIN_VAULT_PASSWORD_LENGTH,
       message: `Password must be at least ${MIN_VAULT_PASSWORD_LENGTH} characters.`,
     };
   }
@@ -59,6 +77,8 @@ export function validateVaultPassword(password: string): VaultPasswordValidation
   if (password.length > MAX_VAULT_PASSWORD_LENGTH) {
     return {
       ok: false,
+      code: "max_length",
+      count: MAX_VAULT_PASSWORD_LENGTH,
       message: `Password must be ${MAX_VAULT_PASSWORD_LENGTH} characters or fewer.`,
     };
   }
@@ -66,6 +86,7 @@ export function validateVaultPassword(password: string): VaultPasswordValidation
   if (isCommonWeakPassword(password)) {
     return {
       ok: false,
+      code: "too_weak",
       message: "Password is too easy to guess. Use a longer passphrase.",
     };
   }
@@ -73,6 +94,7 @@ export function validateVaultPassword(password: string): VaultPasswordValidation
   if (isSingleCharacterRepeated(password)) {
     return {
       ok: false,
+      code: "repeated_character",
       message: "Password cannot be one repeated character.",
     };
   }
@@ -80,6 +102,7 @@ export function validateVaultPassword(password: string): VaultPasswordValidation
   if (isSimpleSequence(password)) {
     return {
       ok: false,
+      code: "simple_sequence",
       message: "Password cannot be a simple sequence.",
     };
   }

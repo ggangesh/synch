@@ -1,6 +1,6 @@
 import { App, Modal, Setting } from "obsidian";
 
-import { t } from "../i18n";
+import { formatVaultPasswordValidationError, t } from "../i18n";
 import type {
   BootstrapRemoteVaultInput,
   CreateRemoteVaultInput,
@@ -161,7 +161,7 @@ class CreateRemoteVaultModal extends Modal {
 
     const passwordValidation = validateVaultPassword(this.password);
     if (!passwordValidation.ok) {
-      return passwordValidation.message;
+      return formatVaultPasswordValidationError(passwordValidation);
     }
 
     if (this.password !== this.confirmPassword) {
@@ -178,7 +178,7 @@ class CreateRemoteVaultModal extends Modal {
 
     const passwordValidation = validateVaultPassword(this.password);
     if (!passwordValidation.ok) {
-      return passwordValidation.message;
+      return formatVaultPasswordValidationError(passwordValidation);
     }
 
     if (this.confirmPassword !== "" && this.password !== this.confirmPassword) {
