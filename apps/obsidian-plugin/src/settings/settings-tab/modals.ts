@@ -382,6 +382,7 @@ export class DeletedFilesModal extends Modal {
         void this.loadDeletedFiles();
       }),
     );
+    actions.settingEl.addClass("synch-deleted-files-actions");
     actions
       .addButton((button) =>
         button
