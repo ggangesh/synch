@@ -11,20 +11,13 @@ Synch는 독립적인 커뮤니티 플러그인 및 서비스입니다. Obsidian
 번역: [English](../../README.md) · [日本語](README.ja.md) ·
 [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-## BRAT으로 설치하기
+## Community plugins에서 설치하기
 
-Synch는 아직 Obsidian 커뮤니티 플러그인 디렉터리에서 제공되지 않습니다.
-[BRAT](https://github.com/TfTHacker/obsidian42-brat)으로
-Obsidian 플러그인을 설치하려면 다음 단계를 따르세요.
-
-1. Obsidian 커뮤니티 플러그인에서 `BRAT`을 검색한 뒤 설치하고 활성화합니다.
-2. 명령 팔레트를 열고 `BRAT: Add a beta plugin for testing`을 실행합니다.
-3. `https://github.com/hjinco/synch`를 붙여넣습니다.
-4. 플러그인을 추가한 뒤 커뮤니티 플러그인 목록을 새로 고칩니다.
-5. `Synch`를 활성화합니다.
-
-BRAT은 GitHub 릴리스에서 베타 플러그인을 설치하며, 자체 설정이나 명령으로
-업데이트할 수 있습니다.
+1. Obsidian 설정을 열고 **Community plugins**로 이동합니다.
+2. 제한 모드를 끈 뒤 **Browse**를 선택합니다.
+3. `Synch by hjinco`를 검색해 선택합니다.
+4. **Install**을 선택합니다.
+5. 설치가 끝나면 **Enable**을 선택합니다.
 
 ## Synch 사용 방법
 

@@ -10,19 +10,13 @@ Synch 是獨立的社群外掛程式與服務，與 Obsidian 沒有關聯。
 翻譯: [English](../../README.md) · [한국어](README.ko.md) ·
 [日本語](README.ja.md) · [简体中文](README.zh-CN.md)
 
-## 使用 BRAT 安裝
+## 從 Community plugins 安裝
 
-Synch 尚未在 Obsidian 社群外掛目錄中提供。若要使用
-[BRAT](https://github.com/TfTHacker/obsidian42-brat)
-安裝 Obsidian 外掛，請依照下列步驟操作：
-
-1. 在 Obsidian 社群外掛中搜尋 `BRAT`，然後安裝並啟用它。
-2. 開啟命令面板並執行 `BRAT: Add a beta plugin for testing`。
-3. 貼上 `https://github.com/hjinco/synch`。
-4. 加入外掛，然後重新整理社群外掛清單。
-5. 啟用 `Synch`。
-
-BRAT 會從 GitHub releases 安裝 beta 外掛，並可透過自身設定或命令更新外掛。
+1. 開啟 Obsidian 設定並前往 **Community plugins**。
+2. 關閉受限模式，然後選擇 **Browse**。
+3. 搜尋並選擇 `Synch by hjinco`。
+4. 選擇 **Install**。
+5. 安裝完成後選擇 **Enable**。
 
 ## 如何使用 Synch
 
