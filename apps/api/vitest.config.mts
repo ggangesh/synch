@@ -39,5 +39,9 @@ export default defineConfig({
 		include: ["test/**/*.test.ts"],
 		setupFiles: ["./test/setup.ts"],
 		testTimeout: 20_000,
+		coverage: {
+			provider: "v8",
+			reporter: ["lcov", "text"],
+		},
 	},
 });

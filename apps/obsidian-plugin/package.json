@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "dotenv": "^17.4.2",
     "esbuild": "^0.25.0",
     "eslint": "^9.0.0",
@@ -26,7 +27,7 @@
     "fake-indexeddb": "^6.2.5",
     "obsidian": "^1.11.4",
     "typescript-eslint": "^8.59.3",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "dexie": "^4.4.2",

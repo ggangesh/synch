@@ -13,5 +13,9 @@ export default {
     environment: "node",
     include: ["src/**/*.test.ts"],
     setupFiles: ["./test/setup.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["lcov", "text"],
+    },
   },
 };

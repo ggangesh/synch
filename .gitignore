@@ -10,3 +10,4 @@ apps/obsidian-plugin/main.js
 
 .omx
 .env
+coverage
