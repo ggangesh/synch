@@ -420,16 +420,29 @@ export class PullEntryStateApplier {
               }
             }
 
+            const failedWrites = new Set<string>();
+            let batchApplied = 0;
             for (const { plan, bytes } of batch.blobs) {
               if (!plan.finalPath || plan.skipVaultWrite) {
                 continue;
               }
-              await writeVaultBytes(this.deps.vaultAdapter, plan.finalPath, bytes);
+              try {
+                await writeVaultBytes(this.deps.vaultAdapter, plan.finalPath, bytes);
+              } catch (writeError) {
+                failedWrites.add(plan.finalPath);
+                console.warn(
+                  `[Synch] Failed to write file "${plan.finalPath}": ${writeError instanceof Error ? writeError.message : String(writeError)}`,
+                );
+              }
             }
 
             removedTotal += removed;
 
             for (const plan of batch.plans) {
+              if (plan.finalPath && failedWrites.has(plan.finalPath)) {
+                continue;
+              }
+              batchApplied += 1;
               await store.upsertEntry({
                 entryId: plan.state.entryId,
                 path: plan.state.deleted ? plan.metadata.path : plan.finalPath,
@@ -446,7 +459,7 @@ export class PullEntryStateApplier {
               await this.pendingMutations.applyPreparedPendingMerge(store, pendingConflict);
             }
 
-            entriesApplied += batch.plans.length;
+            entriesApplied += batchApplied;
             await this.deps.onProgress?.({
               completedEntries: (progress?.completedOffset ?? 0) + entriesApplied,
               totalEntries: progress?.totalEntries ?? prepared.plans.length,

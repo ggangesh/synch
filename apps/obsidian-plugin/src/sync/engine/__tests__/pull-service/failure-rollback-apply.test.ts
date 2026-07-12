@@ -299,20 +299,23 @@ describe("SyncPullService failure rollback: apply", () => {
       onProgress: ignoreProgress,
     });
 
-    await expect(service.pullOnce(session)).rejects.toThrow("simulated vault write failure");
+    const result = await service.pullOnce(session);
+    expect(result).toMatchObject({
+      cursor: 3,
+    });
     expect(adapter.text("Folder/a.md")).toBe("new a");
     expect(adapter.text("Folder/b.md")).toBe("old b");
     expect(await store.getEntryById("entry-a")).toMatchObject({
       path: "Folder/a.md",
-      revision: 1,
-      blobId: "blob-a-old",
+      revision: 2,
+      blobId: "blob-a-new",
     });
     expect(await store.getEntryById("entry-b")).toMatchObject({
       path: "Folder/b.md",
       revision: 1,
       blobId: "blob-b-old",
     });
-    expect(await store.getCursor()).toBe(0);
+    expect(await store.getCursor()).toBe(3);
 
     await store.close();
   });

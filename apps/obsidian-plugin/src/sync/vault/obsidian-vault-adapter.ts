@@ -5,6 +5,8 @@ import type { VaultConfigSyncRules } from "../core/vault-config-rules";
 import { isForbiddenVaultPath } from "../core/vault-path-policy";
 import { asSyncableFile, isSyncableVaultPath, toArrayBuffer } from "./vault-files";
 
+const INVALID_FILENAME_CHARS = /[\\:*?"<>|]/g;
+
 export interface SyncVaultFile {
   path: string;
   mtime: number;
@@ -68,23 +70,56 @@ export class ObsidianSyncVaultAdapter {
   }
 
   async mkdir(path: string): Promise<void> {
-    await this.plugin.app.vault.adapter.mkdir(path);
+    const sanitized = this.sanitizePath(path);
+    try {
+      await this.plugin.app.vault.adapter.mkdir(sanitized);
+    } catch (mkdirError) {
+      if (this.isHiddenPath(sanitized)) {
+        throw mkdirError;
+      }
+      try {
+        await this.plugin.app.vault.createFolder(sanitized);
+      } catch {
+        throw mkdirError;
+      }
+    }
   }
 
   async writeText(path: string, content: string): Promise<void> {
-    await this.plugin.app.vault.adapter.write(path, content);
+    await this.plugin.app.vault.adapter.write(this.sanitizePath(path), content);
   }
 
   async writeBinary(path: string, content: Uint8Array): Promise<void> {
-    await this.plugin.app.vault.adapter.writeBinary(path, toArrayBuffer(content));
+    await this.plugin.app.vault.adapter.writeBinary(
+      this.sanitizePath(path),
+      toArrayBuffer(content),
+    );
   }
 
   async rename(oldPath: string, newPath: string): Promise<void> {
-    await this.plugin.app.vault.adapter.rename(oldPath, newPath);
+    await this.plugin.app.vault.adapter.rename(
+      this.sanitizePath(oldPath),
+      this.sanitizePath(newPath),
+    );
   }
 
   async remove(path: string): Promise<void> {
-    await this.plugin.app.vault.adapter.remove(path);
+    await this.plugin.app.vault.adapter.remove(this.sanitizePath(path));
+  }
+
+  private sanitizePath(path: string): string {
+    const parts = path.split("/");
+    const sanitized = parts.map((part) => part.replace(INVALID_FILENAME_CHARS, "_"));
+    const result = sanitized.join("/");
+    if (result !== path) {
+      console.warn(`[Synch] Sanitized path: "${path}" → "${result}"`);
+    }
+    return result;
+  }
+
+  private isHiddenPath(path: string): boolean {
+    const parts = path.split("/");
+    return parts.some((part) => part.startsWith("."));
   }
 
   private async listIncludedHiddenFiles(): Promise<SyncVaultFile[]> {
