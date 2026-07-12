@@ -1,4 +1,4 @@
-import { App, Notice, setIcon, setTooltip, Setting } from "obsidian";
+import { type App, Notice, Setting, setIcon, setTooltip } from "obsidian";
 
 import { getDefaultApiBaseUrl } from "../../config";
 import { getSynchLocale, t } from "../../i18n";
@@ -15,11 +15,7 @@ import {
   getStoragePercent,
   shouldShowSyncSpinner,
 } from "./format";
-import {
-  DeletedFilesModal,
-  ExcludedFoldersModal,
-  IncludedHiddenFoldersModal,
-} from "./modals";
+import { DeletedFilesModal, ExcludedFoldersModal, IncludedHiddenFoldersModal } from "./modals";
 
 type RefreshSettings = () => void;
 
@@ -150,9 +146,7 @@ export function renderSyncStatusSetting(
 ): SyncStatusSettingControls | null {
   const updateStatus = controller.getPluginUpdateStatus();
   if (updateStatus.state === "update_required") {
-    new Setting(containerEl)
-      .setName(t("sync.paused"))
-      .setDesc(updateStatus.message);
+    new Setting(containerEl).setName(t("sync.paused")).setDesc(updateStatus.message);
     return null;
   }
 
@@ -177,10 +171,7 @@ export function renderSyncStatusSetting(
 
   const storageStatus = controller.getStorageStatus();
   const getSyncDescription = (): string =>
-    formatSyncDescription(
-      controller.getSyncStatusLabel(),
-      controller.getSyncProgress(),
-    );
+    formatSyncDescription(controller.getSyncStatusLabel(), controller.getSyncProgress());
   const initialSyncDescription = getSyncDescription();
   const syncSetting = new Setting(containerEl)
     .setName(t("sync.label"))
@@ -240,13 +231,9 @@ export function renderSyncStatusSetting(
     refreshStorageStatus(): void {
       const nextStorageStatus = controller.getStorageStatus();
       storageSetting.setDesc(
-        nextStorageStatus
-          ? formatStorageDescription(nextStorageStatus)
-          : t("storage.checking"),
+        nextStorageStatus ? formatStorageDescription(nextStorageStatus) : t("storage.checking"),
       );
-      storageProgressBar?.setValue(
-        nextStorageStatus ? getStoragePercent(nextStorageStatus) : 0,
-      );
+      storageProgressBar?.setValue(nextStorageStatus ? getStoragePercent(nextStorageStatus) : 0);
       storageSetting.settingEl.toggleClass(
         "synch-storage-warning",
         isStorageWarningStatus(nextStorageStatus),
@@ -303,12 +290,8 @@ function formatFileSizeBlockedTooltip(blockedFileCount: number): string {
   return t("sync.fileSizeBlocked", { count: blockedFileCount });
 }
 
-export function renderNetworkConnectionRequiredSetting(
-  containerEl: HTMLElement,
-): void {
-  new Setting(containerEl)
-    .setName(t("network.required"))
-    .setDesc(t("network.requiredDesc"));
+export function renderNetworkConnectionRequiredSetting(containerEl: HTMLElement): void {
+  new Setting(containerEl).setName(t("network.required")).setDesc(t("network.requiredDesc"));
 }
 
 export function renderAuthenticationSetting(
@@ -325,9 +308,7 @@ export function renderAuthenticationSetting(
     authSetting.addButton((button) =>
       button
         .setButtonText(
-          isDeviceLoginInProgress
-            ? t("auth.openSignInAgain")
-            : t("auth.signInOnThisDevice"),
+          isDeviceLoginInProgress ? t("auth.openSignInAgain") : t("auth.signInOnThisDevice"),
         )
         .onClick(async () => {
           await controller.beginDeviceLogin();
@@ -336,12 +317,10 @@ export function renderAuthenticationSetting(
     );
   } else {
     authSetting.addButton((button) =>
-      button
-        .setButtonText(t("auth.signOut"))
-        .onClick(async () => {
-          await controller.signOutDevice();
-          refresh();
-        }),
+      button.setButtonText(t("auth.signOut")).onClick(async () => {
+        await controller.signOutDevice();
+        refresh();
+      }),
     );
   }
 }
@@ -386,9 +365,7 @@ export function renderSubscriptionSetting(
   );
 }
 
-function formatSubscriptionDescription(
-  status: SynchSubscriptionStatus,
-): string {
+function formatSubscriptionDescription(status: SynchSubscriptionStatus): string {
   if (status.state === "idle" || status.state === "checking") {
     return t("subscription.checking");
   }
@@ -533,14 +510,7 @@ export function renderFileSyncSettings(
     "includeVideos",
     controller,
   );
-  addFileRuleToggle(
-    containerEl,
-    "PDF",
-    t("fileSync.pdfDesc"),
-    fileRules,
-    "includePdf",
-    controller,
-  );
+  addFileRuleToggle(containerEl, "PDF", t("fileSync.pdfDesc"), fileRules, "includePdf", controller);
   addFileRuleToggle(
     containerEl,
     t("fileSync.other"),
@@ -735,14 +705,9 @@ function addVaultConfigRuleToggle<K extends keyof SynchVaultConfigSyncRules>(
     .setName(name)
     .setDesc(description)
     .addToggle((toggle) =>
-      toggle
-        .setValue(rules[key] as boolean)
-        .onChange(async (value) => {
-          await controller.updateVaultConfigSyncRule(
-            key,
-            value as SynchVaultConfigSyncRules[K],
-          );
-        }),
+      toggle.setValue(rules[key] as boolean).onChange(async (value) => {
+        await controller.updateVaultConfigSyncRule(key, value as SynchVaultConfigSyncRules[K]);
+      }),
     );
 }
 

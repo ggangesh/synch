@@ -1,16 +1,16 @@
-import type { PluginDataStoreLike } from "../plugin-data";
 import { getDefaultApiBaseUrl, parseApiBaseUrlInput } from "../config";
-import {
-  DEFAULT_SYNCH_PLUGIN_SETTINGS,
-  normalizeSynchPluginSettings,
-  type SynchPluginSettings,
-  SYNCH_SETTINGS_KEY,
-} from "./schema";
+import type { PluginDataStoreLike } from "../plugin-data";
 import { normalizeSyncFileRules, type SyncFileRules } from "../sync/core/file-rules";
 import {
   normalizeVaultConfigSyncRules,
   type VaultConfigSyncRules,
 } from "../sync/core/vault-config-rules";
+import {
+  DEFAULT_SYNCH_PLUGIN_SETTINGS,
+  normalizeSynchPluginSettings,
+  SYNCH_SETTINGS_KEY,
+  type SynchPluginSettings,
+} from "./schema";
 
 export class SynchSettingsStore {
   private settings: SynchPluginSettings = DEFAULT_SYNCH_PLUGIN_SETTINGS;
@@ -71,13 +71,9 @@ export class SynchSettingsStore {
     return true;
   }
 
-  async updateVaultConfigSyncRules(
-    nextRules: VaultConfigSyncRules,
-  ): Promise<boolean> {
+  async updateVaultConfigSyncRules(nextRules: VaultConfigSyncRules): Promise<boolean> {
     const normalized = normalizeVaultConfigSyncRules(nextRules);
-    if (
-      JSON.stringify(normalized) === JSON.stringify(this.settings.vaultConfigSync)
-    ) {
+    if (JSON.stringify(normalized) === JSON.stringify(this.settings.vaultConfigSync)) {
       return false;
     }
 

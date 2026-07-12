@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   createCommit,
   createPullClient,
@@ -13,8 +15,8 @@ import {
   encryptTestBlob,
   hashText,
   ignoreProgress,
-  TEST_VAULT_KEY,
   type PullConflictSummary,
+  TEST_VAULT_KEY,
 } from "./helpers";
 
 const conflictTimestamp = () => new Date(2026, 3, 22, 10, 11, 12).getTime();
@@ -437,5 +439,4 @@ describe("SyncPullService failure rollback: preparation", () => {
 
     await store.close();
   });
-
 });

@@ -11,8 +11,7 @@ export interface StoredRemoteVaultKeySecret {
 export async function readStoredRemoteVaultKeySecret(
   plugin: Plugin,
 ): Promise<StoredRemoteVaultKeySecret | null> {
-  const raw =
-    plugin.app.secretStorage.getSecret(REMOTE_VAULT_KEY_SECRET)?.trim() ?? "";
+  const raw = plugin.app.secretStorage.getSecret(REMOTE_VAULT_KEY_SECRET)?.trim() ?? "";
   if (!raw) {
     return null;
   }
@@ -30,10 +29,7 @@ export async function writeStoredRemoteVaultKeySecret(
   plugin: Plugin,
   secret: StoredRemoteVaultKeySecret,
 ): Promise<void> {
-  plugin.app.secretStorage.setSecret(
-    REMOTE_VAULT_KEY_SECRET,
-    encodeBase64(secret.remoteVaultKey),
-  );
+  plugin.app.secretStorage.setSecret(REMOTE_VAULT_KEY_SECRET, encodeBase64(secret.remoteVaultKey));
 }
 
 export async function clearStoredRemoteVaultKeySecret(plugin: Plugin): Promise<void> {

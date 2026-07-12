@@ -1,3 +1,5 @@
+import type { EntryStatePageCursor, ListEntryStatesResponse } from "./changes";
+import type { SyncRealtimeSocketSession } from "./realtime-socket-session";
 import type {
   CommitAcceptedResult,
   CommitMutationPayload,
@@ -7,8 +9,8 @@ import type {
   DeletedEntryPageCursor,
   EntryVersionPageCursor,
   EntryVersionRestoredResponse,
-  EntryVersionsRestoredResponse,
   EntryVersionsResponse,
+  EntryVersionsRestoredResponse,
   HelloAckMessage,
   PurgeDeletedEntryPayload,
   RealtimeSessionState,
@@ -18,8 +20,6 @@ import type {
   SyncStorageStatus,
 } from "./realtime-types";
 import { SyncRealtimeError } from "./realtime-types";
-import type { EntryStatePageCursor, ListEntryStatesResponse } from "./changes";
-import type { SyncRealtimeSocketSession } from "./realtime-socket-session";
 
 export function applySessionStorageLimit(
   status: SyncStorageStatus,
@@ -56,10 +56,7 @@ export class SyncRealtimeApiSession implements SyncRealtimeSession {
 
   applyPolicyUpdate(policy: SyncPolicy, storageStatus: SyncStorageStatus): SyncStorageStatus {
     this.state.policy = policy;
-    const nextStatus = applySessionStorageLimit(
-      storageStatus,
-      policy.storageLimitBytes,
-    );
+    const nextStatus = applySessionStorageLimit(storageStatus, policy.storageLimitBytes);
     this.state.storageStatus = nextStatus;
     return nextStatus;
   }
@@ -239,9 +236,7 @@ export class SyncRealtimeApiSession implements SyncRealtimeSession {
     };
   }
 
-  async commitMutations(
-    mutations: CommitMutationPayload[],
-  ): Promise<CommitMutationsResult> {
+  async commitMutations(mutations: CommitMutationPayload[]): Promise<CommitMutationsResult> {
     const message = await this.transport.request({
       type: "commit_mutations",
       mutations,

@@ -1,14 +1,14 @@
 import type { Plugin } from "obsidian";
 
 import { getSynchLocale } from "../i18n";
-import { RemoteVaultManager } from "../remote-vault/manager";
+import type { RemoteVaultManager } from "../remote-vault/manager";
+import { type SyncFileRules, shouldSyncPath } from "../sync/core/file-rules";
+import type { SyncController } from "../sync/runtime/controller";
 import {
   openBootstrapRemoteVaultModal,
   openConfirmConnectNonEmptyLocalVaultModal,
   openCreateRemoteVaultModal,
 } from "./remote-vault-modals";
-import { shouldSyncPath, type SyncFileRules } from "../sync/core/file-rules";
-import { SyncController } from "../sync/runtime/controller";
 
 export interface SynchRemoteVaultControllerDeps {
   plugin: Plugin;
@@ -54,9 +54,7 @@ export class SynchRemoteVaultController {
       }
 
       if (this.hasSyncableLocalFiles()) {
-        const confirmed = await openConfirmConnectNonEmptyLocalVaultModal(
-          this.deps.plugin.app,
-        );
+        const confirmed = await openConfirmConnectNonEmptyLocalVaultModal(this.deps.plugin.app);
         if (!confirmed) {
           return;
         }

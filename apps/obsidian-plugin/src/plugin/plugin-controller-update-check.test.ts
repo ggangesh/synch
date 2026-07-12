@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  Plugin,
-  resetObsidianMocks,
-  setRequestUrlMock,
-} from "../test-stubs/obsidian";
+import { Plugin, resetObsidianMocks, setRequestUrlMock } from "../test-stubs/obsidian";
 import { SynchPluginController } from "./plugin-controller";
 
 const TestPlugin = Plugin as unknown as new () => Plugin;

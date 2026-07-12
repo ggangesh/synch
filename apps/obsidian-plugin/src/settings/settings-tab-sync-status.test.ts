@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { SynchSyncState } from "../plugin/view-models";
 import {
   getButtonComponents,
   getCreatedElements,
@@ -12,7 +12,6 @@ import {
 } from "../test-stubs/obsidian";
 import { createSettingsTab, nextTask } from "./__tests__/settings-tab-helpers";
 import type { SynchSettingsController } from "./controller";
-import type { SynchSyncState } from "../plugin/view-models";
 
 describe("SynchSettingTab sync status", () => {
   beforeEach(() => {
@@ -58,9 +57,7 @@ describe("SynchSettingTab sync status", () => {
     expect(getSettingNames()).toContain("Sync");
     expect(getSettingNames()).not.toContain("Vault");
     expect(getSettingNames()).not.toContain("Storage");
-    expect(getSettingDescriptions()[0]).toBe(
-      "Connect a remote vault to start syncing.",
-    );
+    expect(getSettingDescriptions()[0]).toBe("Connect a remote vault to start syncing.");
     expect(getButtonComponents().map((button) => button.text)).toContain("Create vault");
     expect(getButtonComponents().map((button) => button.text)).toContain("Connect vault");
     expect(getProgressBarComponents()).toEqual([]);
@@ -86,9 +83,7 @@ describe("SynchSettingTab sync status", () => {
 
     expect(createRemoteVaultFromPrompt).toHaveBeenCalledTimes(1);
     expect(getSettingNames()).toContain("Vault");
-    expect(getButtonComponents().map((button) => button.text)).toContain(
-      "Disconnect vault",
-    );
+    expect(getButtonComponents().map((button) => button.text)).toContain("Disconnect vault");
   });
 
   it("refreshes settings after connecting a vault from the sync section", async () => {
@@ -110,9 +105,7 @@ describe("SynchSettingTab sync status", () => {
 
     expect(connectRemoteVaultFromPrompt).toHaveBeenCalledTimes(1);
     expect(getSettingNames()).toContain("Vault");
-    expect(getButtonComponents().map((button) => button.text)).toContain(
-      "Disconnect vault",
-    );
+    expect(getButtonComponents().map((button) => button.text)).toContain("Disconnect vault");
   });
 
   it("places authentication below sync after sign-in", () => {
@@ -399,13 +392,9 @@ describe("SynchSettingTab sync status", () => {
     tab.display();
 
     expect(getSettingNames().slice(1, 3)).toEqual(["Sync", "Storage"]);
-    expect(getSettingDescriptions()[0]).toBe(
-      "synced 100% - 12 / 12",
-    );
+    expect(getSettingDescriptions()[0]).toBe("synced 100% - 12 / 12");
     expect(getSettingDescriptions()[1]).toBe("24.3 MB / 50 MB (49%)");
-    expect(getProgressBarComponents().map(({ value }) => value)).toEqual([
-      49,
-    ]);
+    expect(getProgressBarComponents().map(({ value }) => value)).toEqual([49]);
     expect(getSettingClasses()[2]).not.toContain("synch-storage-warning");
   });
 
@@ -448,9 +437,7 @@ describe("SynchSettingTab sync status", () => {
 
     tab.display();
 
-    expect(getSettingDescriptions()[1]).toBe(
-      "Storage almost full: 95 B / 100 B (95%)",
-    );
+    expect(getSettingDescriptions()[1]).toBe("Storage almost full: 95 B / 100 B (95%)");
     expect(getProgressBarComponents()[0]?.value).toBe(95);
     expect(getSettingClasses()[2]).toContain("synch-storage-warning");
   });
@@ -495,9 +482,7 @@ describe("SynchSettingTab sync status", () => {
     tab.display();
 
     expect(getSettingNames().slice(1, 3)).toEqual(["Sync", "Storage"]);
-    expect(getSettingDescriptions()[0]).toBe(
-      "synced 100% - 12 / 12",
-    );
+    expect(getSettingDescriptions()[0]).toBe("synced 100% - 12 / 12");
     expect(getSettingDescriptions()[1]).toBe("24.3 MB");
     expect(getProgressBarComponents()[0]?.value).toBe(0);
     expect(getSettingClasses()[2]).not.toContain("synch-storage-warning");
@@ -520,16 +505,12 @@ describe("SynchSettingTab sync status", () => {
     expect(getSettingNames().slice(1, 3)).toEqual(["Sync", "Storage"]);
     expect(getSettingDescriptions()[0]).toBe("synced 100% - 12 / 12");
     expect(getSettingDescriptions()[1]).toBe("Checking storage usage...");
-    expect(getProgressBarComponents().map(({ value }) => value)).toEqual([
-      0,
-    ]);
+    expect(getProgressBarComponents().map(({ value }) => value)).toEqual([0]);
   });
 });
 
 function getSyncSpinnerElements() {
-  return getCreatedElements().filter((element) =>
-    element.classes.includes("synch-sync-spinner"),
-  );
+  return getCreatedElements().filter((element) => element.classes.includes("synch-sync-spinner"));
 }
 
 function getFileSizeWarningElements() {

@@ -1,12 +1,9 @@
-import { TAbstractFile, TFile } from "obsidian";
+import { type TAbstractFile, TFile } from "obsidian";
 
 import type { SyncFileRules } from "../core/file-rules";
 import { normalizeVaultPath, shouldSyncPath } from "../core/file-rules";
 
-export function asSyncableFile(
-  file: TAbstractFile,
-  rules: SyncFileRules,
-): TFile | null {
+export function asSyncableFile(file: TAbstractFile, rules: SyncFileRules): TFile | null {
   return file instanceof TFile && isSyncableVaultPath(file.path, rules) ? file : null;
 }
 

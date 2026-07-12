@@ -1,8 +1,8 @@
 import {
   createApiRequestError,
   defaultHttpClient,
-  stripTrailingSlash,
   type HttpClient,
+  stripTrailingSlash,
 } from "../../http/request";
 import { remoteVaultUnavailableFromApiError } from "../../remote-vault/unavailable";
 

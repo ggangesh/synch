@@ -1,19 +1,8 @@
-const NEVER_SYNC_RESERVED_SEGMENTS = new Set([
-  ".git",
-  ".trash",
-  ".synch",
-  "node_modules",
-]);
+const NEVER_SYNC_RESERVED_SEGMENTS = new Set([".git", ".trash", ".synch", "node_modules"]);
 
-export type SyncPathSafetyClass =
-  | "normal"
-  | "reserved-never-sync"
-  | "reserved-config-managed";
+export type SyncPathSafetyClass = "normal" | "reserved-never-sync" | "reserved-config-managed";
 
-export function classifySyncPath(
-  path: string,
-  configDir = ".obsidian",
-): SyncPathSafetyClass {
+export function classifySyncPath(path: string, configDir = ".obsidian"): SyncPathSafetyClass {
   const normalized = normalizeReservedPath(path);
   if (!normalized) {
     return "normal";

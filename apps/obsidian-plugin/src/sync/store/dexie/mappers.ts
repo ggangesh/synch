@@ -69,13 +69,9 @@ export function normalizeEntryRecord(entry: EntryRecord): EntryRecord {
   return {
     ...entry,
     remotePathKey:
-      entry.remoteKnown && entry.remotePath && !entry.remoteDeleted
-        ? entry.remotePath
-        : undefined,
+      entry.remoteKnown && entry.remotePath && !entry.remoteDeleted ? entry.remotePath : undefined,
     localPathKey:
-      entry.localKnown && entry.localPath && !entry.localDeleted
-        ? entry.localPath
-        : undefined,
+      entry.localKnown && entry.localPath && !entry.localDeleted ? entry.localPath : undefined,
   };
 }
 
@@ -192,8 +188,7 @@ export function normalizePendingMutation(
   return {
     ...mutation,
     status,
-    blockedReason:
-      status === "blocked" ? (mutation.blockedReason ?? "file_too_large") : null,
+    blockedReason: status === "blocked" ? (mutation.blockedReason ?? "file_too_large") : null,
     blockedEncryptedSizeBytes:
       status === "blocked" ? (mutation.blockedEncryptedSizeBytes ?? null) : null,
     blockedMaxFileSizeBytes:
@@ -280,9 +275,7 @@ export function toCachedBlobRow(row: BlobRecord): CachedSyncBlobRow {
   };
 }
 
-export function sortEntryRows<T extends { updatedAt: number; entryId: string }>(
-  rows: T[],
-): T[] {
+export function sortEntryRows<T extends { updatedAt: number; entryId: string }>(rows: T[]): T[] {
   return [...rows].sort((left, right) => {
     if (left.updatedAt !== right.updatedAt) {
       return left.updatedAt - right.updatedAt;

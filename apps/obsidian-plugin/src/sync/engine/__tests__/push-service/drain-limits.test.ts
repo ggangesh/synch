@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
 import { SyncBlobUploadError } from "../../../remote/blob-client";
 import type { CommitMutationPayload } from "../../../remote/realtime-client";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncPushService } from "../../push-service";
 import {
   createPushSession,
@@ -108,90 +110,87 @@ describe("SyncPushService drain: limits", () => {
   it.each([
     ["file_too_large"],
     [""],
-  ])(
-    "blocks upserts when blob upload returns a non-quota 413 (%s)",
-    async (errorCode) => {
-      const plugin = createTestPlugin();
-      const store = await createInitializedTestSyncStore(plugin);
-      const bytes = encodeUtf8("server rejected body");
-      const hash = await hashBytes(bytes);
-      await store.upsertEntry({
+  ])("blocks upserts when blob upload returns a non-quota 413 (%s)", async (errorCode) => {
+    const plugin = createTestPlugin();
+    const store = await createInitializedTestSyncStore(plugin);
+    const bytes = encodeUtf8("server rejected body");
+    const hash = await hashBytes(bytes);
+    await store.upsertEntry({
+      entryId: "entry-upload-413",
+      path: "Folder/upload-413.md",
+      revision: 0,
+      blobId: "blob-upload-413",
+      hash,
+      deleted: false,
+      updatedAt: 1,
+      localMtime: null,
+      localSize: bytes.byteLength,
+    });
+    await store.markEntryDirty({
+      mutationId: "mutation-upload-413",
+      entryId: "entry-upload-413",
+      op: "upsert",
+      baseRevision: 0,
+      blobId: "blob-upload-413",
+      hash,
+      encryptedMetadata: await encryptMutationMetadata({
         entryId: "entry-upload-413",
-        path: "Folder/upload-413.md",
-        revision: 0,
-        blobId: "blob-upload-413",
-        hash,
-        deleted: false,
-        updatedAt: 1,
-        localMtime: null,
-        localSize: bytes.byteLength,
-      });
-      await store.markEntryDirty({
-        mutationId: "mutation-upload-413",
-        entryId: "entry-upload-413",
-        op: "upsert",
         baseRevision: 0,
+        op: "upsert",
         blobId: "blob-upload-413",
+        path: "Folder/upload-413.md",
         hash,
-        encryptedMetadata: await encryptMutationMetadata({
-          entryId: "entry-upload-413",
-          baseRevision: 0,
-          op: "upsert",
-          blobId: "blob-upload-413",
-          path: "Folder/upload-413.md",
-          hash,
-        }),
-        createdAt: 1,
-      });
+      }),
+      createdAt: 1,
+    });
 
-      const session = createPushSession(async () => {
-        throw new Error("413-blocked mutation should not be committed");
-      });
-      session.maxFileSizeBytes = 0;
-      let uploadAttempts = 0;
-      const onFileSizeBlockedFilesChange = vi.fn();
-      const service = new SyncPushService({
-        getApiBaseUrl: () => "http://127.0.0.1:8787",
-        getSyncToken: async () => createToken(),
-        getSyncStore: () => store,
-        getRemoteVaultKey: () => TEST_VAULT_KEY,
-        fileReader: {
-          async readBytes(path) {
-            if (path === "Folder/upload-413.md") {
-              return bytes;
-            }
+    const session = createPushSession(async () => {
+      throw new Error("413-blocked mutation should not be committed");
+    });
+    session.maxFileSizeBytes = 0;
+    let uploadAttempts = 0;
+    const onFileSizeBlockedFilesChange = vi.fn();
+    const service = new SyncPushService({
+      getApiBaseUrl: () => "http://127.0.0.1:8787",
+      getSyncToken: async () => createToken(),
+      getSyncStore: () => store,
+      getRemoteVaultKey: () => TEST_VAULT_KEY,
+      fileReader: {
+        async readBytes(path) {
+          if (path === "Folder/upload-413.md") {
+            return bytes;
+          }
 
-            throw new Error(`unexpected read for ${path}`);
-          },
+          throw new Error(`unexpected read for ${path}`);
         },
-        blobClient: {
-          async uploadBlob() {
-            uploadAttempts += 1;
-            throw new SyncBlobUploadError(413, errorCode, "payload too large");
-          },
+      },
+      blobClient: {
+        async uploadBlob() {
+          uploadAttempts += 1;
+          throw new SyncBlobUploadError(413, errorCode, "payload too large");
         },
-        onProgress: ignoreProgress,
-        onFileSizeBlockedFilesChange,
-      });
+      },
+      onProgress: ignoreProgress,
+      onFileSizeBlockedFilesChange,
+    });
 
-      await expect(service.pushPendingMutations(session)).resolves.toMatchObject({
-        mutationsPushed: 0,
-        mutationsRequeued: 0,
-        hasMore: false,
-      });
-      expect(uploadAttempts).toBe(1);
-      expect(onFileSizeBlockedFilesChange).toHaveBeenCalledTimes(1);
-      expect(await store.listDirtyEntries()).toEqual([]);
-      expect(await store.getDirtyEntryMutation("entry-upload-413")).toMatchObject({
-        mutationId: "mutation-upload-413",
-        status: "blocked",
-        blockedReason: "file_too_large",
-        blockedEncryptedSizeBytes: expect.any(Number),
-        blockedMaxFileSizeBytes: null,
-      });
-      await store.close();
-    },
-  );
+    await expect(service.pushPendingMutations(session)).resolves.toMatchObject({
+      mutationsPushed: 0,
+      mutationsRequeued: 0,
+      hasMore: false,
+    });
+    expect(uploadAttempts).toBe(1);
+    expect(onFileSizeBlockedFilesChange).toHaveBeenCalledTimes(1);
+    expect(await store.listDirtyEntries()).toEqual([]);
+    expect(await store.getDirtyEntryMutation("entry-upload-413")).toMatchObject({
+      mutationId: "mutation-upload-413",
+      status: "blocked",
+      blockedReason: "file_too_large",
+      blockedEncryptedSizeBytes: expect.any(Number),
+      blockedMaxFileSizeBytes: null,
+    });
+    await store.close();
+  });
 
   it("unblocks file-size blocked mutations when the server limit increases", async () => {
     const plugin = createTestPlugin();
@@ -543,10 +542,7 @@ describe("SyncPushService drain: limits", () => {
       getRemoteVaultKey: () => TEST_VAULT_KEY,
       fileReader: {
         async readBytes(path) {
-          if (
-            path === "Folder/server-quota.md" ||
-            path === "Folder/after-quota.md"
-          ) {
+          if (path === "Folder/server-quota.md" || path === "Folder/after-quota.md") {
             return bytes;
           }
 
@@ -568,22 +564,14 @@ describe("SyncPushService drain: limits", () => {
       hasMore: true,
       stopReason: "storage_quota_exceeded",
     });
-    expect(new Set(uploadAttempts)).toEqual(
-      new Set(["blob-server-quota", "blob-after-quota"]),
-    );
+    expect(new Set(uploadAttempts)).toEqual(new Set(["blob-server-quota", "blob-after-quota"]));
     const pending = await store.listDirtyEntries();
     expect(pending.map((mutation) => mutation.mutationId)).toEqual([
       "mutation-server-quota",
       "mutation-after-quota",
     ]);
-    expect(pending.map((mutation) => mutation.status ?? "pending")).toEqual([
-      "pending",
-      "pending",
-    ]);
-    expect(pending.map((mutation) => mutation.blockedReason ?? null)).toEqual([
-      null,
-      null,
-    ]);
+    expect(pending.map((mutation) => mutation.status ?? "pending")).toEqual(["pending", "pending"]);
+    expect(pending.map((mutation) => mutation.blockedReason ?? null)).toEqual([null, null]);
     await store.close();
   });
 
@@ -658,9 +646,7 @@ describe("SyncPushService drain: limits", () => {
     });
     expect(uploadAttempts).toBe(1);
     const pending = await store.listDirtyEntries();
-    expect(pending.map((mutation) => mutation.mutationId)).toEqual([
-      "mutation-known-quota",
-    ]);
+    expect(pending.map((mutation) => mutation.mutationId)).toEqual(["mutation-known-quota"]);
     const quotaMutation = await store.getDirtyEntryMutation("entry-known-quota");
     expect(quotaMutation).toMatchObject({
       mutationId: "mutation-known-quota",
@@ -741,9 +727,7 @@ describe("SyncPushService drain: limits", () => {
     });
     expect(uploadAttempts).toBe(1);
     const pending = await store.listDirtyEntries();
-    expect(pending.map((mutation) => mutation.mutationId)).toEqual([
-      "mutation-near-quota",
-    ]);
+    expect(pending.map((mutation) => mutation.mutationId)).toEqual(["mutation-near-quota"]);
     const quotaMutation = await store.getDirtyEntryMutation("entry-near-quota");
     expect(quotaMutation).toMatchObject({
       mutationId: "mutation-near-quota",
@@ -752,5 +736,4 @@ describe("SyncPushService drain: limits", () => {
     expect(quotaMutation?.blockedReason ?? null).toBeNull();
     await store.close();
   });
-
 });

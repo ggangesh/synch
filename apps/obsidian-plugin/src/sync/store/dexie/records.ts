@@ -1,8 +1,4 @@
-import type {
-  CachedSyncBlobRow,
-  PendingMutationBlockedReason,
-  SyncBlobRole,
-} from "../store";
+import type { CachedSyncBlobRow, PendingMutationBlockedReason, SyncBlobRole } from "../store";
 
 export interface MetadataRecord {
   id: string;

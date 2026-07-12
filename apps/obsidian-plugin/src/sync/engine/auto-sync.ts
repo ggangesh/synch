@@ -1,10 +1,9 @@
-import type { SyncTokenResponse } from "../remote/client";
 import {
   isRemoteVaultUnavailableError,
-  remoteVaultUnavailableFromWebSocketClose,
   type RemoteVaultUnavailableError,
+  remoteVaultUnavailableFromWebSocketClose,
 } from "../../remote-vault/unavailable";
-import type { PushPendingMutationsResult } from "./push-service";
+import type { SyncTokenResponse } from "../remote/client";
 import {
   SyncRealtimeClient,
   SyncRealtimeConnectionError,
@@ -15,6 +14,7 @@ import type { SyncCursorStore } from "../store/ports";
 import { SyncAutoLoopState, type SyncConnectionState } from "./auto-sync-state";
 import { AutoSyncTimers } from "./auto-sync-timers";
 import { PendingSyncWorkQueue } from "./auto-sync-work-queue";
+import type { PushPendingMutationsResult } from "./push-service";
 
 const DEFAULT_PUSH_DEBOUNCE_MS = 300;
 const DEFAULT_RECONNECT_DELAY_MS = 3_000;
@@ -26,12 +26,8 @@ export interface SyncAutoLoopDeps {
   getApiBaseUrl: () => string;
   getSyncToken: () => Promise<SyncTokenResponse>;
   getSyncStore: () => SyncCursorStore | null;
-  pushPendingMutations: (
-    session: SyncRealtimeSession,
-  ) => Promise<PushPendingMutationsResult>;
-  unblockFileSizeBlockedMutations?: (
-    session: SyncRealtimeSession,
-  ) => Promise<number>;
+  pushPendingMutations: (session: SyncRealtimeSession) => Promise<PushPendingMutationsResult>;
+  unblockFileSizeBlockedMutations?: (session: SyncRealtimeSession) => Promise<number>;
   pullOnce: (session: SyncRealtimeSession) => Promise<unknown>;
   realtimeClient?: SyncRealtimeClientLike;
   pushDebounceMs?: number;
@@ -93,10 +89,14 @@ export class SyncAutoLoop {
     }
 
     this.deps.onSyncScheduled?.();
-    this.timers.set("push", () => {
-      this.requestPush();
-      void this.drain();
-    }, this.deps.pushDebounceMs ?? DEFAULT_PUSH_DEBOUNCE_MS);
+    this.timers.set(
+      "push",
+      () => {
+        this.requestPush();
+        void this.drain();
+      },
+      this.deps.pushDebounceMs ?? DEFAULT_PUSH_DEBOUNCE_MS,
+    );
   }
 
   requestPull(targetCursor: number | null = null): void {
@@ -134,9 +134,7 @@ export class SyncAutoLoop {
     }
   }
 
-  async withRealtimeSession<T>(
-    work: (session: SyncRealtimeSession) => Promise<T>,
-  ): Promise<T> {
+  async withRealtimeSession<T>(work: (session: SyncRealtimeSession) => Promise<T>): Promise<T> {
     if (!this.isActive()) {
       this.state.set("live");
     }
@@ -194,10 +192,7 @@ export class SyncAutoLoop {
             void this.handlePolicyUpdated(storageStatus);
           },
           onClose: (event) => {
-            const unavailable = remoteVaultUnavailableFromWebSocketClose(
-              event,
-              token.vaultId,
-            );
+            const unavailable = remoteVaultUnavailableFromWebSocketClose(event, token.vaultId);
             if (unavailable) {
               this.handleRemoteVaultUnavailable(unavailable);
               return;
@@ -269,9 +264,13 @@ export class SyncAutoLoop {
     const maxDelay = this.deps.reconnectMaxDelayMs ?? DEFAULT_RECONNECT_MAX_DELAY_MS;
     const delay = Math.min(baseDelay * 2 ** this.reconnectAttempt, maxDelay);
     this.reconnectAttempt += 1;
-    this.timers.set("reconnect", () => {
-      void this.ensureRealtimeSession();
-    }, delay);
+    this.timers.set(
+      "reconnect",
+      () => {
+        void this.ensureRealtimeSession();
+      },
+      delay,
+    );
   }
 
   private markRealtimeDisconnected(scheduleReconnect = true): void {
@@ -462,14 +461,18 @@ export class SyncAutoLoop {
     const maxDelay = this.deps.syncRetryMaxDelayMs ?? DEFAULT_SYNC_RETRY_MAX_DELAY_MS;
     const delay = Math.min(baseDelay * 2 ** this.syncRetryAttempt, maxDelay);
     this.syncRetryAttempt += 1;
-    this.timers.set("syncRetry", () => {
-      if (!this.isActive() || !this.hasPendingWork()) {
-        return;
-      }
+    this.timers.set(
+      "syncRetry",
+      () => {
+        if (!this.isActive() || !this.hasPendingWork()) {
+          return;
+        }
 
-      this.deps.onSyncScheduled?.();
-      void this.drain();
-    }, delay);
+        this.deps.onSyncScheduled?.();
+        void this.drain();
+      },
+      delay,
+    );
   }
 
   private resetSyncRetry(): void {

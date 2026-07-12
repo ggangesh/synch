@@ -47,9 +47,9 @@ describe("shouldSyncPath", () => {
   });
 
   it("excludes generated sync conflict copies", () => {
-    expect(shouldSyncPath("Welcomed.sync-conflict-20260424-001419.md", DEFAULT_SYNC_FILE_RULES)).toBe(
-      false,
-    );
+    expect(
+      shouldSyncPath("Welcomed.sync-conflict-20260424-001419.md", DEFAULT_SYNC_FILE_RULES),
+    ).toBe(false);
     expect(
       shouldSyncPath("Folder/note.sync-conflict-20260424-001419-2.md", DEFAULT_SYNC_FILE_RULES),
     ).toBe(false);
@@ -115,22 +115,14 @@ describe("normalizeIncludedHiddenFolders", () => {
   });
 
   it("removes descendants when their ancestor is also included", () => {
-    expect(normalizeIncludedHiddenFolders([".assets/raw", ".assets"])).toEqual([
-      ".assets",
-    ]);
+    expect(normalizeIncludedHiddenFolders([".assets/raw", ".assets"])).toEqual([".assets"]);
   });
 });
 
 describe("normalizeExcludedFolders", () => {
   it("normalizes, deduplicates, and removes hidden folders", () => {
     expect(
-      normalizeExcludedFolders([
-        " Archive ",
-        "/Archive/",
-        "Attachments/raw",
-        ".obsidian",
-        ".git",
-      ]),
+      normalizeExcludedFolders([" Archive ", "/Archive/", "Attachments/raw", ".obsidian", ".git"]),
     ).toEqual(["Archive", "Attachments/raw"]);
   });
 
@@ -143,17 +135,11 @@ describe("normalizeExcludedFolders", () => {
   });
 
   it("collapses multi-level descendants under the topmost ancestor", () => {
-    expect(normalizeExcludedFolders(["A", "A/B", "A/B/C", "D"])).toEqual([
-      "A",
-      "D",
-    ]);
+    expect(normalizeExcludedFolders(["A", "A/B", "A/B/C", "D"])).toEqual(["A", "D"]);
   });
 
   it("does not treat lookalike siblings as descendants", () => {
-    expect(normalizeExcludedFolders(["Foo", "Foobar"])).toEqual([
-      "Foo",
-      "Foobar",
-    ]);
+    expect(normalizeExcludedFolders(["Foo", "Foobar"])).toEqual(["Foo", "Foobar"]);
   });
 
   it("prunes regardless of input order", () => {

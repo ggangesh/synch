@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetObsidianMocks, setRequestUrlMock } from "../test-stubs/obsidian";
-import { SynchPluginController } from "./plugin-controller";
 import { createConnectedPlugin } from "./__tests__/readiness-helpers";
+import { SynchPluginController } from "./plugin-controller";
 
 describe("SynchPluginController subscription status", () => {
   beforeEach(() => {

@@ -1,16 +1,13 @@
-
-import type { SyncTokenResponse } from "../../../remote/client";
-import type { ListEntryStatesResponse } from "../../../remote/changes";
-import { encryptSyncBlob, encryptSyncMetadata } from "../../../core/crypto";
 import { hashBytes } from "../../../core/content";
-import type { SyncEventGateLike } from "../../event-gate";
+import { encryptSyncBlob, encryptSyncMetadata } from "../../../core/crypto";
+import type { ListEntryStatesResponse } from "../../../remote/changes";
+import type { SyncTokenResponse } from "../../../remote/client";
 import type { SyncPullClient } from "../../../remote/pull-client";
 import type { SyncRealtimeSession } from "../../../remote/realtime-client";
 import type { SyncStore } from "../../../store/store";
+import type { SyncEventGateLike } from "../../event-gate";
 
-export const TEST_VAULT_KEY = new Uint8Array(
-  Array.from({ length: 32 }, (_, index) => index + 1),
-);
+export const TEST_VAULT_KEY = new Uint8Array(Array.from({ length: 32 }, (_, index) => index + 1));
 
 type TestChangePage = {
   cursor: number;
@@ -59,7 +56,7 @@ export function createCommit(
       JSON.stringify({
         path: "Folder/file.md",
       }),
-    committedAt: overrides.committedAt ?? (overrides.cursor ?? 1),
+    committedAt: overrides.committedAt ?? overrides.cursor ?? 1,
     committedByUserId: "user-1",
     committedByLocalVaultId: "local-vault-1",
   };
@@ -114,9 +111,14 @@ export async function encryptPendingMetadata(input: {
 }
 
 export async function encryptTestBlob(blobId: string, bytes: Uint8Array) {
-  return await encryptSyncBlob(TEST_VAULT_KEY, bytes, { blobId }, {
-    syncFormatVersion: 1,
-  });
+  return await encryptSyncBlob(
+    TEST_VAULT_KEY,
+    bytes,
+    { blobId },
+    {
+      syncFormatVersion: 1,
+    },
+  );
 }
 
 export async function hashText(value: string): Promise<string> {
@@ -292,8 +294,8 @@ export function createRealtimeSession(input: {
     async purgeDeletedEntries() {
       throw new Error("pull tests should not purge deleted entries");
     },
-	    async detachLocalVault() {},
-	    async commitMutation() {
+    async detachLocalVault() {},
+    async commitMutation() {
       throw new Error("pull tests should not commit mutations");
     },
     async commitMutations() {

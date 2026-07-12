@@ -1,6 +1,6 @@
-import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 import obsidianmd from "eslint-plugin-obsidianmd";
+import tseslint from "typescript-eslint";
 
 export default defineConfig([
   ...obsidianmd.configs.recommended,
@@ -13,7 +13,7 @@ export default defineConfig([
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
-    }
+    },
   },
   {
     files: ["**/*.test.ts", "**/__tests__/**/*.ts"],
@@ -41,5 +41,12 @@ export default defineConfig([
       "obsidianmd/no-tfile-tfolder-cast": "off",
     },
   },
-  globalIgnores(["**/*.js", "**/*.mjs", "**/*.json", "src/test-stubs/*.ts", "src/test-support/*.ts", "test/**/*"]),
+  globalIgnores([
+    "**/*.js",
+    "**/*.mjs",
+    "**/*.json",
+    "src/test-stubs/*.ts",
+    "src/test-support/*.ts",
+    "test/**/*",
+  ]),
 ]);

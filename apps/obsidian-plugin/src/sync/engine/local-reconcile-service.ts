@@ -1,16 +1,13 @@
 import { hashBytes } from "../core/content";
 import { createSyncCryptoContext, type SyncCryptoContext } from "../core/crypto";
-import {
-  buildLocalDeleteMutation,
-  buildLocalUpsertMutation,
-} from "../core/mutation-queue";
+import { buildLocalDeleteMutation, buildLocalUpsertMutation } from "../core/mutation-queue";
+import type { SyncReconcileStore, SyncStoreLifecycle } from "../store/ports";
 import type {
   LocalSyncEntryRow,
   RemoteSyncEntryRow,
   SyncReconcileEntryState,
   SyncReconcileEntryUpdate,
 } from "../store/store";
-import type { SyncReconcileStore, SyncStoreLifecycle } from "../store/ports";
 import { isAutoMergeTextPath } from "./text-merge-policy";
 
 const DEFAULT_RECONCILE_HASH_CONCURRENCY = 8;
@@ -52,10 +49,7 @@ export class SyncLocalReconcileService {
     const remoteVaultKey = this.deps.getRemoteVaultKey();
     const metadataCrypto = createSyncCryptoContext(remoteVaultKey);
     try {
-      return await this.reconcileWithMetadataCrypto(
-        store,
-        metadataCrypto,
-      );
+      return await this.reconcileWithMetadataCrypto(store, metadataCrypto);
     } finally {
       metadataCrypto.dispose();
     }
@@ -134,12 +128,7 @@ export class SyncLocalReconcileService {
       restoredDeletedEntry,
       hash,
     } of hashedFiles) {
-      if (
-        existing &&
-        !existingHasPendingDelete &&
-        !existing.deleted &&
-        existing.hash === hash
-      ) {
+      if (existing && !existingHasPendingDelete && !existing.deleted && existing.hash === hash) {
         updates.push({
           entryId: existing.entryId,
           local: {
@@ -152,16 +141,14 @@ export class SyncLocalReconcileService {
       }
 
       const renameMatch =
-        !existing && !restoredDeletedEntry
-          ? takeRenameCandidate(renameCandidates, hash)
-          : null;
+        !existing && !restoredDeletedEntry ? takeRenameCandidate(renameCandidates, hash) : null;
       const entry = existing ?? restoredDeletedEntry ?? renameMatch;
       if (renameMatch) {
         reusedEntryIds.add(renameMatch.entryId);
       }
       const remote = entry
-        ? remoteById.get(entry.entryId) ?? null
-        : visibleRemoteByPath.get(file.path) ?? null;
+        ? (remoteById.get(entry.entryId) ?? null)
+        : (visibleRemoteByPath.get(file.path) ?? null);
       const entryId = entry?.entryId ?? remote?.entryId ?? crypto.randomUUID();
 
       const queued = await buildLocalUpsertMutation({
@@ -258,9 +245,7 @@ export class SyncLocalReconcileService {
     return store;
   }
 
-  private filterKnownEntries(
-    entries: SyncReconcileEntryState[],
-  ): {
+  private filterKnownEntries(entries: SyncReconcileEntryState[]): {
     retained: SyncReconcileEntryState[];
     cleanupUpdates: SyncReconcileEntryUpdate[];
   } {
@@ -292,7 +277,7 @@ export class SyncLocalReconcileService {
 
     for (const entry of entries) {
       const pending = entry.dirty;
-      if (!pending || pending.op !== "delete") {
+      if (pending?.op !== "delete") {
         continue;
       }
 
@@ -321,10 +306,7 @@ interface ReconcileHashInput {
   restoredDeletedEntry: LocalSyncEntryRow | null;
 }
 
-function canSkipHash(
-  existing: LocalSyncEntryRow | null,
-  file: LocalSyncFile,
-): boolean {
+function canSkipHash(existing: LocalSyncEntryRow | null, file: LocalSyncFile): boolean {
   return (
     !!existing &&
     !existing.deleted &&
@@ -404,10 +386,7 @@ async function applyReconcileUpdatesInChunks(
   }
 }
 
-function shouldRequireBaseBlob(
-  path: string,
-  remote: RemoteSyncEntryRow | null,
-): boolean {
+function shouldRequireBaseBlob(path: string, remote: RemoteSyncEntryRow | null): boolean {
   return !!remote && !remote.deleted && !!remote.blobId && isAutoMergeTextPath(path);
 }
 

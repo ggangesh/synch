@@ -1,16 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
-import { SyncAutoLoop } from "../../auto-sync";
 import {
-  createPushResult,
-  createRealtimeClient,
-  createToken,
-} from "./helpers";
-import type {
-  SyncRealtimeCallbacks,
-  SyncRealtimeSession,
-} from "../../../remote/realtime-client";
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
+import type { SyncRealtimeCallbacks, SyncRealtimeSession } from "../../../remote/realtime-client";
+import { SyncAutoLoop } from "../../auto-sync";
+import { createPushResult, createRealtimeClient, createToken } from "./helpers";
 
 describe("SyncAutoLoop local changes", () => {
   it("runs ad-hoc realtime work on the active session", async () => {

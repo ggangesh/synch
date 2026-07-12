@@ -1,5 +1,5 @@
-import { diffLines, type Change } from "diff";
-import { Component, MarkdownRenderer, Modal, Setting, type App } from "obsidian";
+import { type Change, diffLines } from "diff";
+import { type App, Component, MarkdownRenderer, Modal, Setting } from "obsidian";
 
 import { t } from "../i18n";
 import type { SynchVersionPreview } from "./view-models";
@@ -101,11 +101,7 @@ export class VersionPreviewModal extends Modal {
   }
 }
 
-function renderDiffPreview(
-  contentEl: HTMLElement,
-  versionText: string,
-  currentText: string,
-): void {
+function renderDiffPreview(contentEl: HTMLElement, versionText: string, currentText: string): void {
   const diffEl = contentEl.createEl("div", {
     cls: "synch-preview-content synch-preview-diff",
   });

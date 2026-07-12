@@ -29,10 +29,7 @@ export function mergeText3(base: string, local: string, remote: string): TextMer
   const baseLines = splitLines(base);
   const localLines = splitLines(local);
   const remoteLines = splitLines(remote);
-  if (
-    exceedsLcsBudget(baseLines, localLines) ||
-    exceedsLcsBudget(baseLines, remoteLines)
-  ) {
+  if (exceedsLcsBudget(baseLines, localLines) || exceedsLcsBudget(baseLines, remoteLines)) {
     return { status: "conflict" };
   }
 

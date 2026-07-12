@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncEventGate } from "../../event-gate";
 import { SyncEventRecorder } from "../../event-recorder";
-import {
-  decryptPendingMetadata,
-  TEST_VAULT_KEY,
-} from "./helpers";
+import { decryptPendingMetadata, TEST_VAULT_KEY } from "./helpers";
 
 describe("SyncEventRecorder suppression and binary files", () => {
   it("ignores suppressed paths", async () => {
@@ -45,9 +44,7 @@ describe("SyncEventRecorder suppression and binary files", () => {
     expect(entry?.hash).toBe(expectedHash);
     expect(pending?.blobId).toEqual(expect.any(String));
     expect(pending?.hash).toBe(expectedHash);
-    await expect(
-      decryptPendingMetadata(pending),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(pending)).resolves.toEqual({
       path: "Attachments/image.png",
       hash: expectedHash,
     });

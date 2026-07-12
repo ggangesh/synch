@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { SynchVersionPreview } from "../plugin/view-models";
 import {
   getButtonComponents,
   getCreatedElementTexts,
   getMarkdownRenderCalls,
-  getSettingDescriptions,
   getNotices,
   getSettingClasses,
+  getSettingDescriptions,
   getSettingNames,
   getToggleComponents,
   resetObsidianMocks,
 } from "../test-stubs/obsidian";
-import type { SynchVersionPreview } from "../plugin/view-models";
 import { createSettingsTab, nextTask } from "./__tests__/settings-tab-helpers";
 
 describe("SynchSettingTab remote vault settings", () => {
@@ -72,9 +71,7 @@ describe("SynchSettingTab remote vault settings", () => {
 
     expect(getSettingNames()).toContain("Vault management");
     expect(getSettingNames()).toContain("Vault");
-    expect(getButtonComponents().map((button) => button.text)).toContain(
-      "Disconnect vault",
-    );
+    expect(getButtonComponents().map((button) => button.text)).toContain("Disconnect vault");
   });
 
   it("shows deleted file restore controls only for connected vaults", () => {
@@ -86,9 +83,7 @@ describe("SynchSettingTab remote vault settings", () => {
     disconnected.display();
 
     expect(getSettingNames()).not.toContain("Deleted files");
-    expect(getButtonComponents().map((button) => button.text)).not.toContain(
-      "View deleted files",
-    );
+    expect(getButtonComponents().map((button) => button.text)).not.toContain("View deleted files");
 
     resetObsidianMocks();
 
@@ -100,9 +95,7 @@ describe("SynchSettingTab remote vault settings", () => {
     connected.display();
 
     expect(getSettingNames()).toContain("Deleted files");
-    expect(getButtonComponents().map((button) => button.text)).toContain(
-      "View deleted files",
-    );
+    expect(getButtonComponents().map((button) => button.text)).toContain("View deleted files");
   });
 
   it("shows the storage-efficient vault hint below deleted files for format v1 vaults", () => {
@@ -165,12 +158,9 @@ describe("SynchSettingTab remote vault settings", () => {
       ?.click();
     await nextTask();
 
-    expect(getCreatedElementTexts()).toContain(
-      "No synced deleted files are available to restore.",
-    );
+    expect(getCreatedElementTexts()).toContain("No synced deleted files are available to restore.");
     expect(
-      getButtonComponents().find((button) => button.text === "Restore selected")
-        ?.disabled,
+      getButtonComponents().find((button) => button.text === "Restore selected")?.disabled,
     ).toBe(true);
   });
 
@@ -269,15 +259,11 @@ describe("SynchSettingTab remote vault settings", () => {
     expect(getSettingNames()).toContain("Select all");
     await getToggleComponents().slice(-3)[0]?.change(true);
 
-    expect(
-      getLatestButton("Restore selected (2)")?.disabled,
-    ).toBe(false);
+    expect(getLatestButton("Restore selected (2)")?.disabled).toBe(false);
 
     await getToggleComponents().slice(-3)[0]?.change(false);
 
-    expect(
-      getLatestButton("Restore selected")?.disabled,
-    ).toBe(true);
+    expect(getLatestButton("Restore selected")?.disabled).toBe(true);
 
     await getToggleComponents().slice(-3)[0]?.change(true);
     await getLatestButton("Restore selected (2)")?.click();
@@ -344,7 +330,10 @@ describe("SynchSettingTab remote vault settings", () => {
   });
 
   it("purges selected deleted files from the modal", async () => {
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => true),
+    );
     const purgeDeletedFiles = vi.fn(async (files) => ({
       purged: files.length,
       failures: [],
@@ -401,7 +390,10 @@ describe("SynchSettingTab remote vault settings", () => {
   });
 
   it("does not purge selected deleted files when confirmation is cancelled", async () => {
-    vi.stubGlobal("confirm", vi.fn(() => false));
+    vi.stubGlobal(
+      "confirm",
+      vi.fn(() => false),
+    );
     const purgeDeletedFiles = vi.fn(async (files) => ({
       purged: files.length,
       failures: [],
@@ -477,9 +469,7 @@ describe("SynchSettingTab remote vault settings", () => {
     await nextTask();
 
     expect(getSettingNames()).toContain("Notes/first.md");
-    expect(getSettingClasses()).toContainEqual([
-      "synch-deleted-files-load-more",
-    ]);
+    expect(getSettingClasses()).toContainEqual(["synch-deleted-files-load-more"]);
     await getButtonComponents()
       .filter((button) => button.text === "Load more")
       .at(-1)
@@ -487,10 +477,14 @@ describe("SynchSettingTab remote vault settings", () => {
     await nextTask();
 
     expect(listDeletedFiles).toHaveBeenNthCalledWith(1, null, 25);
-    expect(listDeletedFiles).toHaveBeenNthCalledWith(2, {
-      deletedAt: 10,
-      entryId: "entry-first",
-    }, 25);
+    expect(listDeletedFiles).toHaveBeenNthCalledWith(
+      2,
+      {
+        deletedAt: 10,
+        entryId: "entry-first",
+      },
+      25,
+    );
     expect(getSettingNames()).toContain("Notes/first.md");
     expect(getSettingNames()).toContain("Notes/second.md");
   });
@@ -533,10 +527,7 @@ describe("SynchSettingTab remote vault settings", () => {
       ?.click();
     await nextTask();
 
-    expect(previewDeletedFile).toHaveBeenCalledWith(
-      "entry-ready",
-      "Notes/ready.md",
-    );
+    expect(previewDeletedFile).toHaveBeenCalledWith("entry-ready", "Notes/ready.md");
     expect(getMarkdownRenderCalls()).toEqual([
       expect.objectContaining({
         markdown: "previous content",
@@ -580,8 +571,7 @@ describe("SynchSettingTab remote vault settings", () => {
     await nextTask();
 
     expect(
-      getButtonComponents().find((button) => button.text === "Loading preview...")
-        ?.disabled,
+      getButtonComponents().find((button) => button.text === "Loading preview...")?.disabled,
     ).toBe(true);
 
     resolvePreview({

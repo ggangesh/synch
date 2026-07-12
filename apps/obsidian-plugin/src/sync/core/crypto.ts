@@ -1,6 +1,6 @@
+import { decodeBase64, encodeBase64, randomBytes, toArrayBuffer } from "../../utils/bytes";
 import type { SyncedEntryMetadata } from "./content";
 import { parseSyncedEntryMetadata, serializeSyncedEntryMetadata } from "./content";
-import { decodeBase64, encodeBase64, randomBytes, toArrayBuffer } from "../../utils/bytes";
 
 const ENVELOPE_VERSION = 1;
 const SYNC_BLOB_BINARY_ENVELOPE_VERSION = 2;
@@ -71,10 +71,7 @@ export async function decryptSyncMetadata(
   encryptedMetadata: string,
   context: SyncMetadataCryptoContext,
 ): Promise<SyncedEntryMetadata> {
-  return await createSyncCryptoContext(remoteVaultKey).decryptMetadata(
-    encryptedMetadata,
-    context,
-  );
+  return await createSyncCryptoContext(remoteVaultKey).decryptMetadata(encryptedMetadata, context);
 }
 
 export async function encryptSyncBlob(
@@ -83,11 +80,7 @@ export async function encryptSyncBlob(
   context: SyncBlobCryptoContext,
   options: SyncBlobEnvelopeOptions,
 ): Promise<Uint8Array> {
-  return await createSyncCryptoContext(remoteVaultKey).encryptBlob(
-    plaintext,
-    context,
-    options,
-  );
+  return await createSyncCryptoContext(remoteVaultKey).encryptBlob(plaintext, context, options);
 }
 
 export async function decryptSyncBlob(
@@ -96,11 +89,7 @@ export async function decryptSyncBlob(
   context: SyncBlobCryptoContext,
   options: SyncBlobEnvelopeOptions,
 ): Promise<Uint8Array> {
-  return await createSyncCryptoContext(remoteVaultKey).decryptBlob(
-    encryptedBlob,
-    context,
-    options,
-  );
+  return await createSyncCryptoContext(remoteVaultKey).decryptBlob(encryptedBlob, context, options);
 }
 
 class VaultSyncCryptoContext implements SyncCryptoContext {
@@ -226,11 +215,7 @@ class VaultSyncCryptoContext implements SyncCryptoContext {
       return cached;
     }
 
-    const key = await deriveUsageKey(
-      await this.getImportedKey(),
-      usage,
-      envelopeVersion,
-    );
+    const key = await deriveUsageKey(await this.getImportedKey(), usage, envelopeVersion);
     this.usageKeys.set(cacheKey, key);
     return key;
   }
@@ -404,7 +389,10 @@ function throwUnsupportedSyncBlobFormatVersion(syncFormatVersion: number): never
   throw new Error(`Unsupported sync blob format version: ${syncFormatVersion}.`);
 }
 
-function parseEncryptedEnvelope(value: string, envelopeVersion = ENVELOPE_VERSION): EncryptedEnvelope {
+function parseEncryptedEnvelope(
+  value: string,
+  envelopeVersion = ENVELOPE_VERSION,
+): EncryptedEnvelope {
   let parsed: unknown;
   try {
     parsed = JSON.parse(value) as unknown;

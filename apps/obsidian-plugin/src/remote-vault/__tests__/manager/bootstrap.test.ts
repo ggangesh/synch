@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createPasswordWrappedRemoteVaultKey } from "../../crypto";
 import type { StoredRemoteVaultKeySecret } from "../../device-storage";
-import type {
-  RemoteVaultBootstrapResponse,
-  RemoteVaultSummaryResponse,
-} from "../../types";
+import type { RemoteVaultBootstrapResponse, RemoteVaultSummaryResponse } from "../../types";
 import { createManager, remoteVaultSummary } from "./helpers";
 
 describe("RemoteVaultManager bootstrap", () => {
@@ -13,9 +10,7 @@ describe("RemoteVaultManager bootstrap", () => {
     const manager = createManager({
       remoteVaultClient: {
         listRemoteVaults: async (): Promise<RemoteVaultSummaryResponse> => ({
-          vaults: [
-            remoteVaultSummary(),
-          ],
+          vaults: [remoteVaultSummary()],
         }),
       },
     });
@@ -41,9 +36,7 @@ describe("RemoteVaultManager bootstrap", () => {
       savedVaults,
       remoteVaultClient: {
         listRemoteVaults: async (): Promise<RemoteVaultSummaryResponse> => ({
-          vaults: [
-            remoteVaultSummary(),
-          ],
+          vaults: [remoteVaultSummary()],
         }),
         getRemoteVaultBootstrap: async (
           _apiBaseUrl: string,

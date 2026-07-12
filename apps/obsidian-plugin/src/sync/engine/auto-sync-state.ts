@@ -11,9 +11,7 @@ export type SyncConnectionState = "connecting" | "live" | "reconnecting";
 export class SyncAutoLoopState {
   private state: SyncLoopState = "stopped";
 
-  constructor(
-    private readonly onConnectionStateChange?: (state: SyncConnectionState) => void,
-  ) {}
+  constructor(private readonly onConnectionStateChange?: (state: SyncConnectionState) => void) {}
 
   isActive(): boolean {
     return this.state !== "stopped";
@@ -34,10 +32,7 @@ export class SyncAutoLoopState {
       this.onConnectionStateChange?.("reconnecting");
       return;
     }
-    if (
-      state === "live" &&
-      (previous === "connecting" || previous === "reconnect_wait")
-    ) {
+    if (state === "live" && (previous === "connecting" || previous === "reconnect_wait")) {
       this.onConnectionStateChange?.("live");
     }
   }

@@ -1,17 +1,9 @@
+import { type ConflictFileWriter, getAvailableConflictCopyPath } from "../core/conflict-file";
 import type { SyncedEntryMetadata } from "../core/content";
-import {
-  type ConflictFileWriter,
-  getAvailableConflictCopyPath,
-} from "../core/conflict-file";
 import { decryptSyncMetadata } from "../core/crypto";
 import type { RemoteEntryState } from "../remote/changes";
-import type {
-  SyncEntryRow,
-} from "../store/store";
-import type {
-  SyncEntryStore,
-  SyncMutationStore,
-} from "../store/ports";
+import type { SyncEntryStore, SyncMutationStore } from "../store/ports";
+import type { SyncEntryRow } from "../store/store";
 import {
   type AdoptedLocalEntry,
   isDeferredByCursorThreshold,
@@ -63,7 +55,13 @@ export class PullManifestPlanner {
 
           const pathOwner = await store.getEntryByPath(metadata.path);
           const adoptedLocalEntry = pathOwner
-            ? await this.findAdoptableLocalPathOwner(store, state, metadata, pathOwner, metadata.hash)
+            ? await this.findAdoptableLocalPathOwner(
+                store,
+                state,
+                metadata,
+                pathOwner,
+                metadata.hash,
+              )
             : null;
           const externalPathOwner =
             pathOwner &&
@@ -227,7 +225,7 @@ export class PullManifestPlanner {
     }
 
     const pending = await store.getDirtyEntryMutation(pathOwner.entryId);
-    if (!pending || pending.op !== "upsert") {
+    if (pending?.op !== "upsert") {
       return null;
     }
 

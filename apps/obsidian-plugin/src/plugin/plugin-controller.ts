@@ -1,51 +1,11 @@
 import { Notice, type Plugin, TFolder } from "obsidian";
-
+import { AuthManager, type AuthReadiness } from "../auth/manager";
 import { BillingClient } from "../billing/client";
 import { buildBillingWebPageUrl } from "../billing/web-url";
 import { getDefaultApiBaseUrl } from "../config";
 import { isOfflineLikeError } from "../http/network-status";
 import { getSynchLocale, t } from "../i18n";
-import { AuthManager, type AuthReadiness } from "../auth/manager";
 import { SynchPluginDataStore } from "../plugin-data";
-import type { SynchSettingsController } from "../settings/controller";
-import { SynchSettingsStore } from "../settings/store";
-import { SynchRemoteVaultController } from "./remote-vault-controller";
-import { SynchVersionHistoryController } from "./version-history-controller";
-import type { SynchUiEvent } from "./ui-events";
-import type { VersionHistoryViewState } from "./version-history-view";
-import type {
-  SynchDeletedFile,
-  SynchDeletedFileCursor,
-  SynchDeletedFilesPage,
-  SynchDeletedFilesPurgeResult,
-  SynchDeletedFilesRestoreResult,
-  SynchEntryVersionCursor,
-  SynchFileSizeBlockedFile,
-  SynchFileRules,
-  SynchPluginUpdateStatus,
-  SynchStorageStatus,
-  SynchSubscriptionStatus,
-  SynchSyncProgress,
-  SynchSyncState,
-  SynchVaultConfigSyncRules,
-  SynchVersionPreview,
-} from "./view-models";
-import {
-  SUPPORTED_SYNCH_API_MAJOR,
-  SynchServerPluginVersionChecker,
-} from "./server-version-checker";
-import { SynchPluginUpdateChecker } from "./update-checker";
-import {
-  normalizeExcludedFolders,
-  normalizeIncludedHiddenFolders,
-  normalizeVaultPath,
-  type SyncFileRules,
-} from "../sync/core/file-rules";
-import type { VaultConfigSyncRules } from "../sync/core/vault-config-rules";
-import { isReservedSyncPath } from "../sync/core/reserved-paths";
-import type { SyncTokenResponse } from "../sync/remote/client";
-import { SyncController } from "../sync/runtime/controller";
-import { SyncTokenManager } from "../sync/remote/token-manager";
 import type { StoredRemoteVaultKeySecret } from "../remote-vault/device-storage";
 import {
   clearStoredRemoteVaultKeySecret,
@@ -57,7 +17,46 @@ import {
   isRemoteVaultUnavailableError,
   type RemoteVaultUnavailableError,
 } from "../remote-vault/unavailable";
+import type { SynchSettingsController } from "../settings/controller";
+import { SynchSettingsStore } from "../settings/store";
+import {
+  normalizeExcludedFolders,
+  normalizeIncludedHiddenFolders,
+  normalizeVaultPath,
+  type SyncFileRules,
+} from "../sync/core/file-rules";
+import { isReservedSyncPath } from "../sync/core/reserved-paths";
+import type { VaultConfigSyncRules } from "../sync/core/vault-config-rules";
+import type { SyncTokenResponse } from "../sync/remote/client";
+import { SyncTokenManager } from "../sync/remote/token-manager";
+import { SyncController } from "../sync/runtime/controller";
 import type { SyncConnection } from "../sync/store/store";
+import { SynchRemoteVaultController } from "./remote-vault-controller";
+import {
+  SUPPORTED_SYNCH_API_MAJOR,
+  SynchServerPluginVersionChecker,
+} from "./server-version-checker";
+import type { SynchUiEvent } from "./ui-events";
+import { SynchPluginUpdateChecker } from "./update-checker";
+import { SynchVersionHistoryController } from "./version-history-controller";
+import type { VersionHistoryViewState } from "./version-history-view";
+import type {
+  SynchDeletedFile,
+  SynchDeletedFileCursor,
+  SynchDeletedFilesPage,
+  SynchDeletedFilesPurgeResult,
+  SynchDeletedFilesRestoreResult,
+  SynchEntryVersionCursor,
+  SynchFileRules,
+  SynchFileSizeBlockedFile,
+  SynchPluginUpdateStatus,
+  SynchStorageStatus,
+  SynchSubscriptionStatus,
+  SynchSyncProgress,
+  SynchSyncState,
+  SynchVaultConfigSyncRules,
+  SynchVersionPreview,
+} from "./view-models";
 
 const PLUGIN_UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 const SUBSCRIPTION_STATUS_CHECK_INTERVAL_MS = 30 * 1000;
@@ -576,25 +575,15 @@ export class SynchPluginController implements SynchSettingsController {
     return await this.syncController.listFileSizeBlockedFiles();
   }
 
-  async previewDeletedFile(
-    entryId: string,
-    fallbackPath: string,
-  ): Promise<SynchVersionPreview> {
-    return await this.versionHistoryController.previewDeletedFile(
-      entryId,
-      fallbackPath,
-    );
+  async previewDeletedFile(entryId: string, fallbackPath: string): Promise<SynchVersionPreview> {
+    return await this.versionHistoryController.previewDeletedFile(entryId, fallbackPath);
   }
 
-  async restoreDeletedFiles(
-    files: SynchDeletedFile[],
-  ): Promise<SynchDeletedFilesRestoreResult> {
+  async restoreDeletedFiles(files: SynchDeletedFile[]): Promise<SynchDeletedFilesRestoreResult> {
     return await this.versionHistoryController.restoreDeletedFiles(files);
   }
 
-  async purgeDeletedFiles(
-    files: SynchDeletedFile[],
-  ): Promise<SynchDeletedFilesPurgeResult> {
+  async purgeDeletedFiles(files: SynchDeletedFile[]): Promise<SynchDeletedFilesPurgeResult> {
     return await this.versionHistoryController.purgeDeletedFiles(files);
   }
 
@@ -843,10 +832,11 @@ export class SynchPluginController implements SynchSettingsController {
       return;
     }
 
-    this.remoteVaultUnavailableDisconnectPromise =
-      this.runUnavailableRemoteVaultDisconnect(error).finally(() => {
-        this.remoteVaultUnavailableDisconnectPromise = null;
-      });
+    this.remoteVaultUnavailableDisconnectPromise = this.runUnavailableRemoteVaultDisconnect(
+      error,
+    ).finally(() => {
+      this.remoteVaultUnavailableDisconnectPromise = null;
+    });
     await this.remoteVaultUnavailableDisconnectPromise;
   }
 
@@ -951,9 +941,7 @@ export class SynchPluginController implements SynchSettingsController {
     await this.syncController.reconcileAfterFileRuleChange();
   }
 
-  private async updateVaultConfigSyncRules(
-    nextRules: VaultConfigSyncRules,
-  ): Promise<void> {
+  private async updateVaultConfigSyncRules(nextRules: VaultConfigSyncRules): Promise<void> {
     const changed = await this.settingsStore.updateVaultConfigSyncRules(nextRules);
     if (!changed) {
       return;
@@ -971,10 +959,7 @@ export class SynchPluginController implements SynchSettingsController {
     return this.remoteVaultManager.getActiveSession() !== null;
   }
 
-  private async collectSelectableHiddenFolders(
-    folder: string,
-    result: string[],
-  ): Promise<void> {
+  private async collectSelectableHiddenFolders(folder: string, result: string[]): Promise<void> {
     let listed: { folders: string[] };
     try {
       listed = await this.plugin.app.vault.adapter.list(folder);

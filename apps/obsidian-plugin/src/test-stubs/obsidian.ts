@@ -317,8 +317,8 @@ export class Component {
   unload(): void {}
 }
 
-export class MarkdownRenderer {
-  static async render(
+export const MarkdownRenderer = {
+  async render(
     app: unknown,
     markdown: string,
     _el: unknown,
@@ -331,18 +331,22 @@ export class MarkdownRenderer {
       sourcePath,
       component,
     });
-  }
-}
+  },
+};
 
 export class PluginSettingTab {
   containerEl = new MockElement();
 
-  constructor(public app: unknown, public plugin: unknown) {}
+  constructor(
+    public app: unknown,
+    public plugin: unknown,
+  ) {}
 
   hide(): void {}
 }
 
-export interface WorkspaceLeaf {}
+// biome-ignore lint/complexity/noBannedTypes: test stub matching Obsidian API shape
+export type WorkspaceLeaf = {};
 
 export class ItemView {
   contentEl = new MockElement();
@@ -359,9 +363,7 @@ export class Setting {
       }
     },
     removeClass: (value: string): void => {
-      this.settingEl.classes = this.settingEl.classes.filter(
-        (className) => className !== value,
-      );
+      this.settingEl.classes = this.settingEl.classes.filter((className) => className !== value);
     },
     toggleClass: (value: string, enabled: boolean): void => {
       if (enabled) {

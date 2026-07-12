@@ -54,14 +54,8 @@ export interface SyncCursorStore {
 }
 
 export interface SyncMutationStore {
-  markEntryDirty(
-    mutation: PendingMutationRow,
-    options?: MarkEntryDirtyOptions,
-  ): Promise<void>;
-  replaceDirtyEntry(
-    mutation: PendingMutationRow,
-    options?: MarkEntryDirtyOptions,
-  ): Promise<void>;
+  markEntryDirty(mutation: PendingMutationRow, options?: MarkEntryDirtyOptions): Promise<void>;
+  replaceDirtyEntry(mutation: PendingMutationRow, options?: MarkEntryDirtyOptions): Promise<void>;
   getDirtyEntryMutation(entryId: string): Promise<PendingMutationRow | null>;
   listDirtyEntries(limit?: number): Promise<PendingMutationRow[]>;
   listBlockedDirtyEntriesByReason(

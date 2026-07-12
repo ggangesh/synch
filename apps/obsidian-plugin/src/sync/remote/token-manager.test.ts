@@ -1,17 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-
-import { SyncTokenManager } from "./token-manager";
 import type { SyncAccessClient, SyncTokenResponse } from "./client";
+import { SyncTokenManager } from "./token-manager";
 
 describe("SyncTokenManager", () => {
   it("issues a token for the active vault", async () => {
-    const issueSyncToken = vi.fn(async (): Promise<SyncTokenResponse> => ({
-      token: "sync-token-1",
-      expiresAt: 1_000 + 120,
-      vaultId: "vault-1",
-      localVaultId: "local-vault-1",
-      syncFormatVersion: 1,
-    }));
+    const issueSyncToken = vi.fn(
+      async (): Promise<SyncTokenResponse> => ({
+        token: "sync-token-1",
+        expiresAt: 1_000 + 120,
+        vaultId: "vault-1",
+        localVaultId: "local-vault-1",
+        syncFormatVersion: 1,
+      }),
+    );
     const manager = createManager({
       now: () => 1_000_000,
       syncAccessClient: {
@@ -22,24 +23,22 @@ describe("SyncTokenManager", () => {
     const token = await manager.getTokenForActiveRemoteVault();
 
     expect(token.token).toBe("sync-token-1");
-    expect(issueSyncToken).toHaveBeenCalledWith(
-      "http://127.0.0.1:8787",
-      "session-token",
-      {
-        vaultId: "vault-1",
-        localVaultId: "local-vault-1",
-      },
-    );
+    expect(issueSyncToken).toHaveBeenCalledWith("http://127.0.0.1:8787", "session-token", {
+      vaultId: "vault-1",
+      localVaultId: "local-vault-1",
+    });
   });
 
   it("reuses a cached token before expiry", async () => {
-    const issueSyncToken = vi.fn(async (): Promise<SyncTokenResponse> => ({
-      token: "sync-token-1",
-      expiresAt: 1_120,
-      vaultId: "vault-1",
-      localVaultId: "local-vault-1",
-      syncFormatVersion: 1,
-    }));
+    const issueSyncToken = vi.fn(
+      async (): Promise<SyncTokenResponse> => ({
+        token: "sync-token-1",
+        expiresAt: 1_120,
+        vaultId: "vault-1",
+        localVaultId: "local-vault-1",
+        syncFormatVersion: 1,
+      }),
+    );
     const manager = createManager({
       now: () => 1_000_000,
       syncAccessClient: {
@@ -57,19 +56,19 @@ describe("SyncTokenManager", () => {
   it("refreshes when the cached token is near expiry", async () => {
     const issueSyncToken = vi.fn();
     issueSyncToken.mockResolvedValueOnce({
-        token: "sync-token-1",
-        expiresAt: 1_010,
-        vaultId: "vault-1",
-        localVaultId: "local-vault-1",
-        syncFormatVersion: 1,
-      });
+      token: "sync-token-1",
+      expiresAt: 1_010,
+      vaultId: "vault-1",
+      localVaultId: "local-vault-1",
+      syncFormatVersion: 1,
+    });
     issueSyncToken.mockResolvedValueOnce({
-        token: "sync-token-2",
-        expiresAt: 1_120,
-        vaultId: "vault-1",
-        localVaultId: "local-vault-1",
-        syncFormatVersion: 1,
-      });
+      token: "sync-token-2",
+      expiresAt: 1_120,
+      vaultId: "vault-1",
+      localVaultId: "local-vault-1",
+      syncFormatVersion: 1,
+    });
 
     const manager = createManager({
       now: () => 1_000_000,
@@ -88,17 +87,19 @@ describe("SyncTokenManager", () => {
 
   it("refreshes when the active vault changes", async () => {
     let vaultId = "vault-1";
-    const issueSyncToken = vi.fn(async (
-      _apiBaseUrl: string,
-      _sessionToken: string,
-      input: { vaultId: string; localVaultId: string },
-    ): Promise<SyncTokenResponse> => ({
-      token: `sync-token-${input.vaultId}`,
-      expiresAt: 1_120,
-      vaultId: input.vaultId,
-      localVaultId: input.localVaultId,
-      syncFormatVersion: 1,
-    }));
+    const issueSyncToken = vi.fn(
+      async (
+        _apiBaseUrl: string,
+        _sessionToken: string,
+        input: { vaultId: string; localVaultId: string },
+      ): Promise<SyncTokenResponse> => ({
+        token: `sync-token-${input.vaultId}`,
+        expiresAt: 1_120,
+        vaultId: input.vaultId,
+        localVaultId: input.localVaultId,
+        syncFormatVersion: 1,
+      }),
+    );
     const manager = createManager({
       getRemoteVaultId: () => vaultId,
       now: () => 1_000_000,
@@ -118,17 +119,19 @@ describe("SyncTokenManager", () => {
 
   it("refreshes when the local vault id changes", async () => {
     let localVaultId = "local-vault-1";
-    const issueSyncToken = vi.fn(async (
-      _apiBaseUrl: string,
-      _sessionToken: string,
-      input: { vaultId: string; localVaultId: string },
-    ): Promise<SyncTokenResponse> => ({
-      token: `sync-token-${input.localVaultId}`,
-      expiresAt: 1_120,
-      vaultId: input.vaultId,
-      localVaultId: input.localVaultId,
-      syncFormatVersion: 1,
-    }));
+    const issueSyncToken = vi.fn(
+      async (
+        _apiBaseUrl: string,
+        _sessionToken: string,
+        input: { vaultId: string; localVaultId: string },
+      ): Promise<SyncTokenResponse> => ({
+        token: `sync-token-${input.localVaultId}`,
+        expiresAt: 1_120,
+        vaultId: input.vaultId,
+        localVaultId: input.localVaultId,
+        syncFormatVersion: 1,
+      }),
+    );
     const manager = createManager({
       getLocalVaultId: async () => localVaultId,
       now: () => 1_000_000,
@@ -149,12 +152,12 @@ describe("SyncTokenManager", () => {
   it("clears cached tokens explicitly", async () => {
     const issueSyncToken = vi.fn();
     issueSyncToken.mockResolvedValue({
-        token: "sync-token",
-        expiresAt: 1_120,
-        vaultId: "vault-1",
-        localVaultId: "local-vault-1",
-        syncFormatVersion: 1,
-      });
+      token: "sync-token",
+      expiresAt: 1_120,
+      vaultId: "vault-1",
+      localVaultId: "local-vault-1",
+      syncFormatVersion: 1,
+    });
     const manager = createManager({
       now: () => 1_000_000,
       syncAccessClient: {
@@ -172,13 +175,15 @@ describe("SyncTokenManager", () => {
   it("rejects unsupported sync format versions from issued tokens", async () => {
     const manager = createManager({
       syncAccessClient: {
-        issueSyncToken: vi.fn(async (): Promise<SyncTokenResponse> => ({
-          token: "sync-token",
-          expiresAt: 1_120,
-          vaultId: "vault-1",
-          localVaultId: "local-vault-1",
-          syncFormatVersion: 3,
-        })),
+        issueSyncToken: vi.fn(
+          async (): Promise<SyncTokenResponse> => ({
+            token: "sync-token",
+            expiresAt: 1_120,
+            vaultId: "vault-1",
+            localVaultId: "local-vault-1",
+            syncFormatVersion: 3,
+          }),
+        ),
       } as SyncAccessClient,
     });
 

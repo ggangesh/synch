@@ -1,10 +1,7 @@
-
 import { decryptSyncMetadata, encryptSyncMetadata } from "../../../core/crypto";
 import type { SyncStore } from "../../../store/store";
 
-export const TEST_VAULT_KEY = new Uint8Array(
-  Array.from({ length: 32 }, (_, index) => index + 1),
-);
+export const TEST_VAULT_KEY = new Uint8Array(Array.from({ length: 32 }, (_, index) => index + 1));
 
 export function decryptPendingMetadata(
   pending:

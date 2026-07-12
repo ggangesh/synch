@@ -78,9 +78,7 @@ describe("SynchSettingTab", () => {
     tab.display();
 
     expect(getSettingNames()).toEqual(["Synch", "Network connection required"]);
-    expect(getSettingDescriptions()).toContain(
-      "Connect to the internet to check sign-in.",
-    );
+    expect(getSettingDescriptions()).toContain("Connect to the internet to check sign-in.");
     expect(getButtonComponents()).toEqual([]);
     expect(getTextComponents()).toEqual([]);
   });
@@ -360,9 +358,7 @@ describe("SynchSettingTab", () => {
 
     tab.display();
 
-    expect(getSettingDescriptions()).toContain(
-      "Subscription status could not be loaded.",
-    );
+    expect(getSettingDescriptions()).toContain("Subscription status could not be loaded.");
     const refreshButton = getButtonComponents().find((button) => button.text === "Refresh");
     await refreshButton?.click();
 
@@ -485,5 +481,4 @@ describe("SynchSettingTab", () => {
 
     expect(watchStorageStatus).toHaveBeenCalledTimes(0);
   });
-
 });

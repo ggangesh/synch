@@ -1,20 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import {
-  getNotices,
-  Plugin,
-  resetObsidianMocks,
-  setRequestUrlMock,
-} from "../test-stubs/obsidian";
+import { SYNCH_SETTINGS_KEY, type SynchPluginSettings } from "../settings/schema";
 import { DEFAULT_SYNC_FILE_RULES } from "../sync/core/file-rules";
 import { SyncController } from "../sync/runtime/controller";
-import { SYNCH_SETTINGS_KEY, type SynchPluginSettings } from "../settings/schema";
-import { SynchPluginController } from "./plugin-controller";
+import { getNotices, Plugin, resetObsidianMocks, setRequestUrlMock } from "../test-stubs/obsidian";
 import {
   createConnectedPlugin,
   mockOnlineReadinessRequests,
   storedConnection,
 } from "./__tests__/readiness-helpers";
+import { SynchPluginController } from "./plugin-controller";
 
 const TestPlugin = Plugin as unknown as new () => Plugin;
 
@@ -126,8 +120,9 @@ describe("SynchPluginController sync enabled setting", () => {
     expect(stopAutoSyncAndMarkNotReady).toHaveBeenCalled();
     expect(controller.isSyncEnabled()).toBe(false);
     expect(refreshUi).toHaveBeenCalled();
-    expect(getNotices().filter((notice) => notice.message === "Update Synch before syncing."))
-      .toHaveLength(2);
+    expect(
+      getNotices().filter((notice) => notice.message === "Update Synch before syncing."),
+    ).toHaveLength(2);
   });
 
   it("does not enable sync when the server API major is incompatible", async () => {

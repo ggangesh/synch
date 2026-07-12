@@ -10,4 +10,3 @@ export function toWebSocketUrl(apiBaseUrl: string, vaultId: string): string {
 
   throw new Error("API base URL must use http:// or https:// for sync websocket connections.");
 }
-

@@ -1,9 +1,6 @@
 import type { Plugin } from "obsidian";
 
-import {
-  shouldSyncVaultConfigPath,
-  type VaultConfigSyncRules,
-} from "../core/vault-config-rules";
+import { shouldSyncVaultConfigPath, type VaultConfigSyncRules } from "../core/vault-config-rules";
 import type { SyncVaultFile } from "./obsidian-vault-adapter";
 
 export class ObsidianVaultConfigSource {
@@ -23,7 +20,7 @@ export class ObsidianVaultConfigSource {
     }
 
     const stat = await this.plugin.app.vault.adapter.stat(rules.configDir);
-    if (!stat || stat.type !== "folder") {
+    if (stat?.type !== "folder") {
       return [];
     }
 
@@ -32,10 +29,7 @@ export class ObsidianVaultConfigSource {
     return files;
   }
 
-  private async collectFiles(
-    folder: string,
-    files: SyncVaultFile[],
-  ): Promise<void> {
+  private async collectFiles(folder: string, files: SyncVaultFile[]): Promise<void> {
     const listed = await this.plugin.app.vault.adapter.list(folder);
     for (const childFolder of listed.folders) {
       await this.collectFiles(childFolder, files);
@@ -47,7 +41,7 @@ export class ObsidianVaultConfigSource {
       }
 
       const stat = await this.plugin.app.vault.adapter.stat(filePath);
-      if (!stat || stat.type !== "file") {
+      if (stat?.type !== "file") {
         continue;
       }
 

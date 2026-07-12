@@ -126,7 +126,7 @@ export class ObsidianSyncVaultAdapter {
     const files: SyncVaultFile[] = [];
     for (const folder of this.getSyncFileRules().includedHiddenFolders) {
       const stat = await this.plugin.app.vault.adapter.stat(folder);
-      if (!stat || stat.type !== "folder") {
+      if (stat?.type !== "folder") {
         continue;
       }
 
@@ -135,10 +135,7 @@ export class ObsidianSyncVaultAdapter {
     return files;
   }
 
-  private async collectHiddenFiles(
-    folder: string,
-    files: SyncVaultFile[],
-  ): Promise<void> {
+  private async collectHiddenFiles(folder: string, files: SyncVaultFile[]): Promise<void> {
     const listed = await this.plugin.app.vault.adapter.list(folder);
     for (const childFolder of listed.folders) {
       if (this.isScannableFolder(childFolder)) {
@@ -152,7 +149,7 @@ export class ObsidianSyncVaultAdapter {
       }
 
       const stat = await this.plugin.app.vault.adapter.stat(filePath);
-      if (!stat || stat.type !== "file") {
+      if (stat?.type !== "file") {
         continue;
       }
 

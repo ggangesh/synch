@@ -1,21 +1,15 @@
-import { SyncBlobClient, SyncBlobUploadError } from "../remote/blob-client";
 import { hashBytes } from "../core/content";
-import {
-  createSyncCryptoContext,
-  type SyncCryptoContext,
-} from "../core/crypto";
+import { createSyncCryptoContext, type SyncCryptoContext } from "../core/crypto";
 import { queueLocalUpsertMutation } from "../core/mutation-queue";
+import { SyncBlobClient, SyncBlobUploadError } from "../remote/blob-client";
 import type { SyncTokenResponse } from "../remote/client";
 import type { PendingMutationRow } from "../store/store";
+import { metadataContextFromMutation, toCommitPayload } from "./push-mutation-shared";
 import type {
   PreparePushMutationResult,
   PushMutationCommitterDeps,
   PushMutationStore,
 } from "./push-mutation-types";
-import {
-  metadataContextFromMutation,
-  toCommitPayload,
-} from "./push-mutation-shared";
 
 export class PushMutationPreparer {
   private readonly blobClient: SyncBlobClient;
@@ -64,29 +58,25 @@ export class PushMutationPreparer {
       return null;
     }
     const blobId = mutation.blobId;
-    const encryptedBytes = await syncCrypto.encryptBlob(bytes, { blobId }, {
-      syncFormatVersion: token.syncFormatVersion,
-    });
+    const encryptedBytes = await syncCrypto.encryptBlob(
+      bytes,
+      { blobId },
+      {
+        syncFormatVersion: token.syncFormatVersion,
+      },
+    );
     const storageBytesAdded =
       mutation.blobId === mutation.baseBlobId && mutation.hash === mutation.baseHash
         ? 0
         : encryptedBytes.byteLength;
     if (maxFileSizeBytes > 0 && encryptedBytes.byteLength > maxFileSizeBytes) {
-      await this.blockOversizedUpsert(
-        store,
-        mutation,
-        encryptedBytes.byteLength,
-        maxFileSizeBytes,
-      );
+      await this.blockOversizedUpsert(store, mutation, encryptedBytes.byteLength, maxFileSizeBytes);
       return {
         skipped: true,
         reason: "file_too_large",
       };
     }
-    if (
-      storageAvailableBytes !== null &&
-      storageBytesAdded > storageAvailableBytes
-    ) {
+    if (storageAvailableBytes !== null && storageBytesAdded > storageAvailableBytes) {
       return {
         skipped: true,
         reason: "storage_quota_exceeded",
@@ -202,16 +192,12 @@ export class PushMutationPreparer {
 
 function isQuotaExceededUploadError(error: unknown): boolean {
   return (
-    error instanceof SyncBlobUploadError &&
-    error.status === 413 &&
-    error.code === "quota_exceeded"
+    error instanceof SyncBlobUploadError && error.status === 413 && error.code === "quota_exceeded"
   );
 }
 
 function isFileTooLargeUploadError(error: unknown): boolean {
   return (
-    error instanceof SyncBlobUploadError &&
-    error.status === 413 &&
-    error.code !== "quota_exceeded"
+    error instanceof SyncBlobUploadError && error.status === 413 && error.code !== "quota_exceeded"
   );
 }

@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   removeVaultPathIfExists,
+  type SyncVaultWriter,
   writeVaultBinary,
   writeVaultBytes,
   writeVaultText,
-  type SyncVaultWriter,
 } from "./vault-writer";
 
 describe("vault writer", () => {
@@ -52,9 +52,7 @@ describe("vault writer", () => {
   });
 
   it("uses writer-provided protected path rules", async () => {
-    const writer = new MemoryVaultWriter(
-      (path) => path === ".obsidian/workspace.json",
-    );
+    const writer = new MemoryVaultWriter((path) => path === ".obsidian/workspace.json");
 
     await writeVaultText(writer, ".obsidian/app.json", "{}");
     await expect(writeVaultText(writer, ".obsidian/workspace.json", "{}")).rejects.toThrow(
@@ -79,11 +77,7 @@ class MemoryVaultWriter implements SyncVaultWriter {
   }
 
   async exists(path: string): Promise<boolean> {
-    return (
-      this.directories.has(path) ||
-      this.textFiles.has(path) ||
-      this.binaryFiles.has(path)
-    );
+    return this.directories.has(path) || this.textFiles.has(path) || this.binaryFiles.has(path);
   }
 
   async mkdir(path: string): Promise<void> {

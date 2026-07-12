@@ -25,8 +25,7 @@ export class SynchPluginUpdateChecker {
     }
 
     const manifest = response.json as RemoteManifest;
-    const latestVersion =
-      manifest && typeof manifest === "object" ? manifest.version : undefined;
+    const latestVersion = manifest && typeof manifest === "object" ? manifest.version : undefined;
     if (typeof latestVersion !== "string") {
       throw new Error("GitHub manifest does not contain a version.");
     }
@@ -69,10 +68,7 @@ function parseStrictSemver(value: string): [number, number, number] | null {
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
-function compareSemver(
-  left: [number, number, number],
-  right: [number, number, number],
-): number {
+function compareSemver(left: [number, number, number], right: [number, number, number]): number {
   for (let index = 0; index < left.length; index += 1) {
     const difference = left[index] - right[index];
     if (difference !== 0) {

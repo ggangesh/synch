@@ -12,14 +12,8 @@ describe("ObsidianVaultConfigSource", () => {
     await plugin.app.vault.adapter.mkdir(".obsidian/plugins/calendar");
     await plugin.app.vault.adapter.write(".obsidian/app.json", "{}");
     await plugin.app.vault.adapter.write(".obsidian/workspace.json", "{}");
-    await plugin.app.vault.adapter.write(
-      ".obsidian/plugins/calendar/manifest.json",
-      "{}",
-    );
-    await plugin.app.vault.adapter.write(
-      ".obsidian/plugins/calendar/data.json",
-      "{}",
-    );
+    await plugin.app.vault.adapter.write(".obsidian/plugins/calendar/manifest.json", "{}");
+    await plugin.app.vault.adapter.write(".obsidian/plugins/calendar/data.json", "{}");
 
     const source = new ObsidianVaultConfigSource(plugin, () => ({
       ...DEFAULT_VAULT_CONFIG_SYNC_RULES,

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
 import { decryptSyncBlob, decryptSyncMetadata } from "../../../core/crypto";
 import type { CommitMutationPayload } from "../../../remote/realtime-client";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncPushService } from "../../push-service";
 import {
   createPushSession,
@@ -110,27 +112,32 @@ describe("SyncPushService drain: basic queue", () => {
       hasMore: false,
     });
     expect(progressUpdates).toEqual([{ completedEntries: 1, totalEntries: 1 }]);
-    expect(committed.map(({ entryId, op, baseRevision }) => ({ entryId, op, baseRevision }))).toEqual(
-      [
-        {
-          entryId: "entry-upsert",
-          op: "upsert",
-          baseRevision: 0,
-        },
-        {
-          entryId: "entry-deleted",
-          op: "delete",
-          baseRevision: 2,
-        },
-      ],
-    );
+    expect(
+      committed.map(({ entryId, op, baseRevision }) => ({ entryId, op, baseRevision })),
+    ).toEqual([
+      {
+        entryId: "entry-upsert",
+        op: "upsert",
+        baseRevision: 0,
+      },
+      {
+        entryId: "entry-deleted",
+        op: "delete",
+        baseRevision: 2,
+      },
+    ]);
     expect(uploaded).toHaveLength(1);
     expect(new TextDecoder().decode(uploaded[0]?.bytes ?? new Uint8Array())).not.toBe("new body");
     expect(new TextDecoder().decode(uploaded[0]?.bytes.slice(0, 4))).toBe("SYNB");
     await expect(
-      decryptSyncBlob(TEST_VAULT_KEY, uploaded[0]?.bytes ?? new Uint8Array(), {
-        blobId: uploaded[0]?.blobId ?? "",
-      }, { syncFormatVersion: 2 }),
+      decryptSyncBlob(
+        TEST_VAULT_KEY,
+        uploaded[0]?.bytes ?? new Uint8Array(),
+        {
+          blobId: uploaded[0]?.blobId ?? "",
+        },
+        { syncFormatVersion: 2 },
+      ),
     ).resolves.toEqual(new TextEncoder().encode("new body"));
     await expect(
       decryptSyncMetadata(
@@ -327,5 +334,4 @@ describe("SyncPushService drain: basic queue", () => {
     expect(committed).toBe(false);
     await store.close();
   });
-
 });

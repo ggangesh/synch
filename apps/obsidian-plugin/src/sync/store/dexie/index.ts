@@ -3,16 +3,11 @@
 // Dexie version in the same app window.
 import Dexie from "dexie/dist/dexie.mjs";
 import type { Plugin } from "obsidian";
-
+import type { SyncConnection, SyncStore } from "../store";
 import { METADATA_ID, SyncDexieDatabase, syncStoreDbName } from "./database";
-import {
-  clearLocalVaultId,
-  getOrCreateLocalVaultId,
-  readLocalVaultId,
-} from "./local-vault";
+import { clearLocalVaultId, getOrCreateLocalVaultId, readLocalVaultId } from "./local-vault";
 import { toSyncConnection } from "./mappers";
 import { DexieSyncStore } from "./store";
-import type { SyncConnection, SyncStore } from "../store";
 
 export async function createDexieSyncStore(plugin: Plugin): Promise<SyncStore> {
   const store = new DexieSyncStore(getOrCreateLocalVaultId(plugin));
@@ -29,9 +24,7 @@ export async function clearDexieSyncStore(plugin: Plugin): Promise<void> {
   clearLocalVaultId(plugin);
 }
 
-export async function readDexieSyncStoreConnection(
-  plugin: Plugin,
-): Promise<SyncConnection | null> {
+export async function readDexieSyncStoreConnection(plugin: Plugin): Promise<SyncConnection | null> {
   const localVaultId = readLocalVaultId(plugin);
   if (!localVaultId) {
     return null;

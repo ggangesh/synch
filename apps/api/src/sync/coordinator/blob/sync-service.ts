@@ -9,111 +9,102 @@ import type { CoordinatorStateRepository } from "../state-repository";
 const GC_BATCH_SIZE = 64;
 
 export class BlobSyncService {
-	constructor(
-		private readonly syncTokenService: SyncTokenService,
-		private readonly stateRepository: CoordinatorStateRepository,
-		private readonly socketService: CoordinatorSocketService,
-		private readonly blobRepository: BlobRepository,
-		private readonly blobGracePeriodMs: number,
-		private readonly deferMaintenance: (
-			key: MaintenanceJobKey,
-			timestamp: number,
-			now?: number,
-		) => Promise<void>,
-		private readonly scheduleHealthSummaryFlush: (now?: number) => Promise<void>,
-	) {}
+  constructor(
+    private readonly syncTokenService: SyncTokenService,
+    private readonly stateRepository: CoordinatorStateRepository,
+    private readonly socketService: CoordinatorSocketService,
+    private readonly blobRepository: BlobRepository,
+    private readonly blobGracePeriodMs: number,
+    private readonly deferMaintenance: (
+      key: MaintenanceJobKey,
+      timestamp: number,
+      now?: number,
+    ) => Promise<void>,
+    private readonly scheduleHealthSummaryFlush: (now?: number) => Promise<void>,
+  ) {}
 
-	async stageBlob(
-		request: Request,
-		vaultId: string,
-		blobId: string,
-		sizeBytes: number,
-	): Promise<void> {
-		await this.syncTokenService.requireSyncToken(request, vaultId);
+  async stageBlob(
+    request: Request,
+    vaultId: string,
+    blobId: string,
+    sizeBytes: number,
+  ): Promise<void> {
+    await this.syncTokenService.requireSyncToken(request, vaultId);
 
-		const now = Date.now();
-		try {
-			await this.stateRepository.stageBlob(
-				blobId,
-				sizeBytes,
-				now,
-				now + this.blobGracePeriodMs,
-			);
-			await this.deferMaintenance("blob_gc", now + this.blobGracePeriodMs, now);
-			this.broadcastStorageStatus();
-		} catch (error) {
-			if (error instanceof DomainError) {
-				throw domainApiError(error);
-			}
-			throw error;
-		}
-	}
+    const now = Date.now();
+    try {
+      await this.stateRepository.stageBlob(blobId, sizeBytes, now, now + this.blobGracePeriodMs);
+      await this.deferMaintenance("blob_gc", now + this.blobGracePeriodMs, now);
+      this.broadcastStorageStatus();
+    } catch (error) {
+      if (error instanceof DomainError) {
+        throw domainApiError(error);
+      }
+      throw error;
+    }
+  }
 
-	async abortStagedBlob(
-		request: Request,
-		vaultId: string,
-		blobId: string,
-	): Promise<void> {
-		await this.syncTokenService.requireSyncToken(request, vaultId);
-		this.stateRepository.abortStagedBlob(blobId, Date.now());
-		await this.scheduleHealthSummaryFlush();
-		this.broadcastStorageStatus();
-	}
+  async abortStagedBlob(request: Request, vaultId: string, blobId: string): Promise<void> {
+    await this.syncTokenService.requireSyncToken(request, vaultId);
+    this.stateRepository.abortStagedBlob(blobId, Date.now());
+    await this.scheduleHealthSummaryFlush();
+    this.broadcastStorageStatus();
+  }
 
-	async deleteBlob(request: Request, vaultId: string, blobId: string): Promise<void> {
-		await this.syncTokenService.requireSyncToken(request, vaultId);
-		const blob = this.stateRepository.readBlob(blobId);
-		if (blob && this.stateRepository.isBlobPinned(blobId, false)) {
-			return;
-		}
+  async deleteBlob(request: Request, vaultId: string, blobId: string): Promise<void> {
+    await this.syncTokenService.requireSyncToken(request, vaultId);
+    const blob = this.stateRepository.readBlob(blobId);
+    if (blob && this.stateRepository.isBlobPinned(blobId, false)) {
+      return;
+    }
 
-		await this.blobRepository.delete(blobObjectKey(vaultId, blobId));
-		if (blob) {
-			this.stateRepository.deleteBlobRecord(blobId);
-			await this.scheduleHealthSummaryFlush();
-			this.broadcastStorageStatus();
-		}
-	}
+    await this.blobRepository.delete(blobObjectKey(vaultId, blobId));
+    if (blob) {
+      this.stateRepository.deleteBlobRecord(blobId);
+      await this.scheduleHealthSummaryFlush();
+      this.broadcastStorageStatus();
+    }
+  }
 
-	async runGc(
-		vaultId?: string,
-		options: {
-			now?: number;
-			scheduleHealthFlush?: boolean;
-			scheduleNextGc?: boolean;
-		} = {},
-	): Promise<number | null> {
-		const effectiveVaultId = vaultId ?? this.stateRepository.readVaultId();
-		if (!effectiveVaultId) {
-			return null;
-		}
+  async runGc(
+    vaultId?: string,
+    options: {
+      now?: number;
+      scheduleHealthFlush?: boolean;
+      scheduleNextGc?: boolean;
+    } = {},
+  ): Promise<number | null> {
+    const effectiveVaultId = vaultId ?? this.stateRepository.readVaultId();
+    if (!effectiveVaultId) {
+      return null;
+    }
 
-		const now = options.now ?? Date.now();
-		const due = this.stateRepository.listBlobsReadyForDeletion(now, GC_BATCH_SIZE);
-		for (const blob of due) {
-			await this.blobRepository.delete(blobObjectKey(effectiveVaultId, blob.blob_id));
-			this.stateRepository.deleteBlobIfCollectible(blob.blob_id, now);
-		}
+    const now = options.now ?? Date.now();
+    const due = this.stateRepository.listBlobsReadyForDeletion(now, GC_BATCH_SIZE);
+    for (const blob of due) {
+      await this.blobRepository.delete(blobObjectKey(effectiveVaultId, blob.blob_id));
+      this.stateRepository.deleteBlobIfCollectible(blob.blob_id, now);
+    }
 
-		const nextGcAt = this.stateRepository.nextBlobGcAt();
-		if ((options.scheduleNextGc ?? true) && nextGcAt !== null) {
-			await this.deferMaintenance("blob_gc", nextGcAt, now);
-		}
-		this.stateRepository.recordGcCompleted(now);
-		if (options.scheduleHealthFlush ?? true) {
-			await this.deferMaintenance("health_summary_flush", now, now);
-		}
-		if (due.length > 0) {
-			this.broadcastStorageStatus();
-		}
-		return nextGcAt;
-	}
+    const nextGcAt = this.stateRepository.nextBlobGcAt();
+    if ((options.scheduleNextGc ?? true) && nextGcAt !== null) {
+      await this.deferMaintenance("blob_gc", nextGcAt, now);
+    }
+    this.stateRepository.recordGcCompleted(now);
+    if (options.scheduleHealthFlush ?? true) {
+      await this.deferMaintenance("health_summary_flush", now, now);
+    }
+    if (due.length > 0) {
+      this.broadcastStorageStatus();
+    }
+    return nextGcAt;
+  }
 
-	private broadcastStorageStatus(): void {
-		const storageStatus = this.stateRepository.readStorageStatus();
-		this.socketService.broadcastStorageStatus({
-			type: "storage_status_updated",
-			storageStatus,
-		});
-	}
+  private broadcastStorageStatus(): void {
+    const storageStatus = this.stateRepository.readStorageStatus();
+    this.socketService.broadcastStorageStatus({
+      type: "storage_status_updated",
+      storageStatus,
+    });
+  }
 }

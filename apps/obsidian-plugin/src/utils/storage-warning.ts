@@ -13,9 +13,7 @@ export function getStorageUsageRatio(status: StorageWarningStatus): number | nul
   return status.storageUsedBytes / status.storageLimitBytes;
 }
 
-export function isStorageWarningStatus(
-  status: StorageWarningStatus | null,
-): boolean {
+export function isStorageWarningStatus(status: StorageWarningStatus | null): boolean {
   if (!status) {
     return false;
   }

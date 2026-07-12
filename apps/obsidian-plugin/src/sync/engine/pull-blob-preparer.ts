@@ -1,10 +1,9 @@
 import { hashBytes } from "../core/content";
 import { decryptSyncBlob } from "../core/crypto";
-import type { SyncTokenResponse } from "../remote/client";
 import type { RemoteEntryState } from "../remote/changes";
+import type { SyncTokenResponse } from "../remote/client";
 import type { SyncPullClient } from "../remote/pull-client";
 import type { SyncBlobStore } from "../store/ports";
-import { isAutoMergeTextPath } from "./text-merge-policy";
 import {
   DEFAULT_PREPARE_CONCURRENCY,
   mapWithConcurrency,
@@ -12,6 +11,7 @@ import {
   type PreparedEntryBlob,
   requireBlobId,
 } from "./pull-entry-state-internal";
+import { isAutoMergeTextPath } from "./text-merge-policy";
 
 interface PullBlobPreparerDeps {
   getApiBaseUrl: () => string;

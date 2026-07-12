@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-
-import { encodeUtf8, hashBytes } from "../../../core/content";
 import {
-  SyncRealtimeError,
-  type CommitMutationPayload,
-} from "../../../remote/realtime-client";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
+import { encodeUtf8, hashBytes } from "../../../core/content";
+import { type CommitMutationPayload, SyncRealtimeError } from "../../../remote/realtime-client";
 import { SyncPushService } from "../../push-service";
 import {
   createPushSession,
@@ -216,18 +215,16 @@ describe("SyncPushService drain: batching", () => {
     const firstSession = createPushSession(async () => {
       firstCommitStarted = true;
       await firstCommit.promise;
-      throw new SyncRealtimeError(
-        "stale_revision",
-        "expected base revision 0 but received 1",
-        { expectedBaseRevision: 0, receivedBaseRevision: 1 },
-      );
+      throw new SyncRealtimeError("stale_revision", "expected base revision 0 but received 1", {
+        expectedBaseRevision: 0,
+        receivedBaseRevision: 1,
+      });
     });
     const secondSession = createPushSession(async () => {
-      throw new SyncRealtimeError(
-        "stale_revision",
-        "expected base revision 0 but received 1",
-        { expectedBaseRevision: 0, receivedBaseRevision: 1 },
-      );
+      throw new SyncRealtimeError("stale_revision", "expected base revision 0 but received 1", {
+        expectedBaseRevision: 0,
+        receivedBaseRevision: 1,
+      });
     });
     const service = new SyncPushService({
       getApiBaseUrl: () => "http://127.0.0.1:8787",

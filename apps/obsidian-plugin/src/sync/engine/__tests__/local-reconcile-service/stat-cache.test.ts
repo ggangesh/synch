@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncLocalReconcileService } from "../../local-reconcile-service";
 import { localFile, TEST_VAULT_KEY } from "./helpers";
 

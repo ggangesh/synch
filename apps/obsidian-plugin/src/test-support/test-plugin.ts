@@ -1,5 +1,5 @@
 import type { Plugin } from "obsidian";
-
+import { decryptSyncMetadata, encryptSyncMetadata } from "../sync/core/crypto";
 import type {
   AcceptedPushMutationRow,
   CachedSyncBlobRow,
@@ -16,7 +16,6 @@ import type {
   SyncReconcileEntryUpdate,
   SyncStore,
 } from "../sync/store/store";
-import { decryptSyncMetadata, encryptSyncMetadata } from "../sync/core/crypto";
 
 export function createTestPlugin(): Plugin {
   let data: unknown = null;
@@ -48,7 +47,12 @@ export function createTestPlugin(): Plugin {
           async exists(path: string): Promise<boolean> {
             return directories.has(path) || files.has(path);
           },
-          async stat(path: string): Promise<{ type: "file" | "folder"; ctime: number; mtime: number; size: number } | null> {
+          async stat(path: string): Promise<{
+            type: "file" | "folder";
+            ctime: number;
+            mtime: number;
+            size: number;
+          } | null> {
             const file = files.get(path);
             if (file !== undefined) {
               return {
@@ -97,9 +101,7 @@ export function createTestPlugin(): Plugin {
               const rest = folderPath.slice(prefix.length);
               const slashIndex = rest.indexOf("/");
               childFolders.add(
-                slashIndex < 0
-                  ? folderPath
-                  : `${prefix}${rest.slice(0, slashIndex)}`,
+                slashIndex < 0 ? folderPath : `${prefix}${rest.slice(0, slashIndex)}`,
               );
             }
 
@@ -415,10 +417,7 @@ class InMemorySyncStore implements SyncStore {
     reason: PendingMutationBlockedReason,
   ): Promise<PendingMutationRow[]> {
     return [...this.pendingMutations.values()]
-      .filter(
-        (mutation) =>
-          mutation.status === "blocked" && mutation.blockedReason === reason,
-      )
+      .filter((mutation) => mutation.status === "blocked" && mutation.blockedReason === reason)
       .sort(comparePendingMutationsAscending)
       .map(toPendingMutationRow);
   }
@@ -462,9 +461,7 @@ class InMemorySyncStore implements SyncStore {
     }));
   }
 
-  async applyReconcileEntryUpdates(
-    updates: SyncReconcileEntryUpdate[],
-  ): Promise<void> {
+  async applyReconcileEntryUpdates(updates: SyncReconcileEntryUpdate[]): Promise<void> {
     for (const update of updates) {
       if (update.deleteEntry) {
         await this.deleteEntry(update.entryId);

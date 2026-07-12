@@ -7,10 +7,7 @@ import type { ObsidianSyncVaultAdapter } from "../vault/obsidian-vault-adapter";
 export interface SyncVaultEventHandlerDeps {
   plugin: Plugin;
   vaultAdapter: ObsidianSyncVaultAdapter;
-  eventRecorder: Pick<
-    SyncEventRecorder,
-    "recordUpsert" | "recordRename" | "recordDelete"
-  >;
+  eventRecorder: Pick<SyncEventRecorder, "recordUpsert" | "recordRename" | "recordDelete">;
   autoLoop: Pick<SyncAutoLoop, "notifyLocalChange">;
   runLocalMutationWork: <T>(work: () => Promise<T>) => Promise<T>;
   hasActiveRemoteVaultSession: () => boolean;

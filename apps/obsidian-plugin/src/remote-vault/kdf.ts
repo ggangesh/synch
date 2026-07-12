@@ -1,5 +1,5 @@
-import type { RemoteVaultKeyDerivationMetadata } from "./types";
 import { decodeBase64, encodeBase64, randomBytes, toArrayBuffer } from "../utils/bytes";
+import type { RemoteVaultKeyDerivationMetadata } from "./types";
 
 const ARGON2_SALT_BYTES = 16;
 const WRAP_KEY_BYTES = 32;
@@ -41,8 +41,7 @@ export async function deriveWrapKey(
     default?: { argon2id?: typeof import("hash-wasm").argon2id };
     "module.exports"?: { argon2id?: typeof import("hash-wasm").argon2id };
   };
-  const argon2id =
-    imported.default?.argon2id ?? imported["module.exports"]?.argon2id;
+  const argon2id = imported.default?.argon2id ?? imported["module.exports"]?.argon2id;
   if (!argon2id) {
     throw new Error("argon2id module failed to load");
   }

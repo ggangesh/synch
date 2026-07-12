@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   arrangePendingUpsertWithCachedBase,
   createCommit,
@@ -84,10 +86,7 @@ describe("SyncPullService failure rollback: apply", () => {
       vaultAdapter: failingAdapter,
       pullClient: createPullClient({
         blobs: {
-          "blob-remote": await encryptTestBlob(
-            "blob-remote",
-            new TextEncoder().encode(remoteBody),
-          ),
+          "blob-remote": await encryptTestBlob("blob-remote", new TextEncoder().encode(remoteBody)),
         },
       }),
       onProgress: ignoreProgress,
@@ -181,10 +180,7 @@ describe("SyncPullService failure rollback: apply", () => {
       vaultAdapter: adapter,
       pullClient: createPullClient({
         blobs: {
-          "blob-remote": await encryptTestBlob(
-            "blob-remote",
-            new TextEncoder().encode(remoteBody),
-          ),
+          "blob-remote": await encryptTestBlob("blob-remote", new TextEncoder().encode(remoteBody)),
         },
       }),
       onProgress: ignoreProgress,

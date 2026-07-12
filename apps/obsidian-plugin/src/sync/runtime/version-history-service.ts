@@ -10,10 +10,7 @@ import type {
   RestoreEntryVersionPayload,
   SyncRealtimeSession,
 } from "../remote/realtime-client";
-import type {
-  SyncEntryStore,
-  SyncMutationStore,
-} from "../store/ports";
+import type { SyncEntryStore, SyncMutationStore } from "../store/ports";
 
 const VERSION_RESTORE_PAGE_SIZE = 25;
 const VERSION_PREVIEW_UNAVAILABLE_MESSAGE = "This version has no previewable content.";
@@ -24,18 +21,13 @@ export interface SyncVersionHistoryServiceDeps {
   getStore: () => SyncVersionHistoryStore;
   getRemoteVaultKey: () => Uint8Array;
   pullClient: Pick<SyncPullClient, "downloadBlob">;
-  withRealtimeSession: <T>(
-    work: (session: SyncRealtimeSession) => Promise<T>,
-  ) => Promise<T>;
+  withRealtimeSession: <T>(work: (session: SyncRealtimeSession) => Promise<T>) => Promise<T>;
   runLocalMutationWork: <T>(work: () => Promise<T>) => Promise<T>;
   pullOnce: (session: SyncRealtimeSession) => Promise<void>;
 }
 
 export interface SyncVersionHistoryStore
-  extends Pick<
-      SyncEntryStore,
-      "getEntryByPath"
-    >,
+  extends Pick<SyncEntryStore, "getEntryByPath">,
     Pick<SyncMutationStore, "getDirtyEntryMutation"> {}
 
 export class SyncVersionHistoryService {
@@ -69,10 +61,7 @@ export class SyncVersionHistoryService {
     });
   }
 
-  async restoreEntryVersionForPath(
-    path: string,
-    version: EntryVersion,
-  ): Promise<void> {
+  async restoreEntryVersionForPath(path: string, version: EntryVersion): Promise<void> {
     await this.deps.runLocalMutationWork(async () => {
       const store = this.deps.getStore();
       const entry = await store.getEntryByPath(path);
@@ -180,9 +169,7 @@ export class SyncVersionHistoryService {
         }
 
         const restored = await session.restoreEntryVersions(payloads);
-        const accepted = restored.results.filter(
-          (result) => result.status === "accepted",
-        );
+        const accepted = restored.results.filter((result) => result.status === "accepted");
         for (const rejected of restored.results) {
           if (rejected.status === "rejected") {
             failures.push({
@@ -243,12 +230,9 @@ export class SyncVersionHistoryService {
     return await this.previewEntryVersion(entryId, version, fallbackPath);
   }
 
-  private async findLatestRestorableEntryVersion(
-    entryId: string,
-  ): Promise<EntryVersion | null> {
+  private async findLatestRestorableEntryVersion(entryId: string): Promise<EntryVersion | null> {
     return await this.deps.withRealtimeSession(
-      async (session) =>
-        await this.findLatestRestorableEntryVersionInSession(session, entryId),
+      async (session) => await this.findLatestRestorableEntryVersionInSession(session, entryId),
     );
   }
 
@@ -276,10 +260,7 @@ export class SyncVersionHistoryService {
     return null;
   }
 
-  private async restoreEntryVersion(
-    entry: RestorableEntry,
-    version: EntryVersion,
-  ): Promise<void> {
+  private async restoreEntryVersion(entry: RestorableEntry, version: EntryVersion): Promise<void> {
     const payload = await this.createRestoreEntryVersionPayload(entry, version);
 
     await this.deps.withRealtimeSession(async (session) => {
@@ -302,16 +283,12 @@ export class SyncVersionHistoryService {
         blobId: version.blobId,
       },
     );
-    const encryptedMetadata = await encryptSyncMetadata(
-      this.deps.getRemoteVaultKey(),
-      metadata,
-      {
-        entryId: entry.entryId,
-        revision: entry.revision + 1,
-        op: version.op,
-        blobId: version.blobId,
-      },
-    );
+    const encryptedMetadata = await encryptSyncMetadata(this.deps.getRemoteVaultKey(), metadata, {
+      entryId: entry.entryId,
+      revision: entry.revision + 1,
+      op: version.op,
+      blobId: version.blobId,
+    });
     return {
       entryId: entry.entryId,
       versionId: version.versionId,

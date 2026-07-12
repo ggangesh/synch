@@ -1,3 +1,4 @@
+import { decryptSyncMetadata, encryptSyncMetadata } from "../../core/crypto";
 import type {
   AcceptedPushMutationRow,
   CachedSyncBlobRow,
@@ -14,7 +15,6 @@ import type {
   SyncReconcileEntryUpdate,
   SyncStore,
 } from "../store";
-import { decryptSyncMetadata, encryptSyncMetadata } from "../../core/crypto";
 import {
   METADATA_ID,
   MIN_PENDING_CREATED_AT,
@@ -97,9 +97,7 @@ export class DexieSyncStore implements SyncStore {
 
   async listRemoteStates(): Promise<RemoteSyncEntryRow[]> {
     return sortEntryRows(
-      (await this.db.entries.toArray())
-        .filter((row) => row.remoteKnown)
-        .map(toRemoteEntryRow),
+      (await this.db.entries.toArray()).filter((row) => row.remoteKnown).map(toRemoteEntryRow),
     );
   }
 
@@ -159,9 +157,7 @@ export class DexieSyncStore implements SyncStore {
 
   async listLocalStates(): Promise<LocalSyncEntryRow[]> {
     return sortEntryRows(
-      (await this.db.entries.toArray())
-        .filter((row) => row.localKnown)
-        .map(toLocalEntryRow),
+      (await this.db.entries.toArray()).filter((row) => row.localKnown).map(toLocalEntryRow),
     );
   }
 
@@ -322,19 +318,13 @@ export class DexieSyncStore implements SyncStore {
     options: MarkEntryDirtyOptions = {},
   ): Promise<void> {
     const normalized = normalizePendingMutation(mutation);
-    await this.db.transaction(
-      "rw",
-      this.db.entries,
-      this.db.blobs,
-      this.db.metadata,
-      async () => {
-        if (options.requireBaseBlob) {
-          await this.assertRequiredBaseBlob(normalized);
-        }
-        const entry = await this.getOrCreateEntryRecord(normalized.entryId);
-        await this.putEntry(toDirtyEntryRecord(entry, normalized));
-      },
-    );
+    await this.db.transaction("rw", this.db.entries, this.db.blobs, this.db.metadata, async () => {
+      if (options.requireBaseBlob) {
+        await this.assertRequiredBaseBlob(normalized);
+      }
+      const entry = await this.getOrCreateEntryRecord(normalized.entryId);
+      await this.putEntry(toDirtyEntryRecord(entry, normalized));
+    });
   }
 
   async getDirtyEntryMutation(entryId: string): Promise<PendingMutationRow | null> {
@@ -345,10 +335,7 @@ export class DexieSyncStore implements SyncStore {
   async listDirtyEntries(limit?: number): Promise<PendingMutationRow[]> {
     let collection = this.db.entries
       .where("[pendingStatus+pendingCreatedAt+entryId]")
-      .between(
-        ["pending", MIN_PENDING_CREATED_AT, ""],
-        ["pending", [], []],
-      );
+      .between(["pending", MIN_PENDING_CREATED_AT, ""], ["pending", [], []]);
     if (limit !== undefined) {
       collection = collection.limit(limit);
     }
@@ -392,10 +379,7 @@ export class DexieSyncStore implements SyncStore {
   }
 
   async clearDirtyEntryByMutationId(mutationId: string): Promise<void> {
-    const entry = await this.db.entries
-      .where("pendingMutationId")
-      .equals(mutationId)
-      .first();
+    const entry = await this.db.entries.where("pendingMutationId").equals(mutationId).first();
     if (!entry) {
       return;
     }
@@ -421,87 +405,73 @@ export class DexieSyncStore implements SyncStore {
     }));
   }
 
-  async applyReconcileEntryUpdates(
-    updates: SyncReconcileEntryUpdate[],
-  ): Promise<void> {
+  async applyReconcileEntryUpdates(updates: SyncReconcileEntryUpdate[]): Promise<void> {
     if (updates.length === 0) {
       return;
     }
 
-    await this.db.transaction(
-      "rw",
-      this.db.entries,
-      this.db.blobs,
-      this.db.metadata,
-      async () => {
-        const existingRows = await this.db.entries.bulkGet(
-          updates.map((update) => update.entryId),
-        );
-        const rowsToPut: EntryRecord[] = [];
-        const rowsBeforePut: Array<EntryRecord | null> = [];
-        const entriesToDelete: EntryRecord[] = [];
+    await this.db.transaction("rw", this.db.entries, this.db.blobs, this.db.metadata, async () => {
+      const existingRows = await this.db.entries.bulkGet(updates.map((update) => update.entryId));
+      const rowsToPut: EntryRecord[] = [];
+      const rowsBeforePut: Array<EntryRecord | null> = [];
+      const entriesToDelete: EntryRecord[] = [];
 
-        for (let index = 0; index < updates.length; index += 1) {
-          const update = updates[index];
-          const existingRow = existingRows[index] ?? null;
-          if (update.deleteEntry) {
-            if (existingRow) {
-              entriesToDelete.push(existingRow);
-            }
-            continue;
+      for (let index = 0; index < updates.length; index += 1) {
+        const update = updates[index];
+        const existingRow = existingRows[index] ?? null;
+        if (update.deleteEntry) {
+          if (existingRow) {
+            entriesToDelete.push(existingRow);
           }
+          continue;
+        }
 
-          let row = existingRow ?? createEmptyEntryRecord(update.entryId);
-          if (update.dirty !== undefined) {
-            if (update.dirty === null) {
-              row = clearPendingMutation(row);
-            } else {
-              const mutation = normalizePendingMutation(update.dirty);
-              if (update.requireBaseBlob) {
-                await this.assertRequiredBaseBlob(mutation);
-              }
-              row = toDirtyEntryRecord(row, mutation);
-            }
-          } else if (update.clearDirty) {
+        let row = existingRow ?? createEmptyEntryRecord(update.entryId);
+        if (update.dirty !== undefined) {
+          if (update.dirty === null) {
             row = clearPendingMutation(row);
+          } else {
+            const mutation = normalizePendingMutation(update.dirty);
+            if (update.requireBaseBlob) {
+              await this.assertRequiredBaseBlob(mutation);
+            }
+            row = toDirtyEntryRecord(row, mutation);
           }
-
-          if (update.local) {
-            row = {
-              ...row,
-              localKnown: true,
-              localPath: update.local.path,
-              localBlobId: update.local.blobId,
-              localHash: update.local.hash,
-              localDeleted: update.local.deleted,
-              localUpdatedAt: update.local.updatedAt,
-              localMtime: update.local.localMtime,
-              localSize: update.local.localSize,
-            };
-          }
-
-          rowsToPut.push(normalizeEntryRecord(row));
-          rowsBeforePut.push(existingRow);
+        } else if (update.clearDirty) {
+          row = clearPendingMutation(row);
         }
 
-        const progressDelta = sumProgressDeltas([
-          ...rowsToPut.map((row, index) =>
-            getProgressDelta(rowsBeforePut[index] ?? null, row),
-          ),
-          ...entriesToDelete.map((row) => getProgressDelta(row, null)),
-        ]);
+        if (update.local) {
+          row = {
+            ...row,
+            localKnown: true,
+            localPath: update.local.path,
+            localBlobId: update.local.blobId,
+            localHash: update.local.hash,
+            localDeleted: update.local.deleted,
+            localUpdatedAt: update.local.updatedAt,
+            localMtime: update.local.localMtime,
+            localSize: update.local.localSize,
+          };
+        }
 
-        if (entriesToDelete.length > 0) {
-          await this.db.entries.bulkDelete(
-            entriesToDelete.map((entry) => entry.entryId),
-          );
-        }
-        if (rowsToPut.length > 0) {
-          await this.db.entries.bulkPut(rowsToPut);
-        }
-        await this.applyProgressDelta(progressDelta);
-      },
-    );
+        rowsToPut.push(normalizeEntryRecord(row));
+        rowsBeforePut.push(existingRow);
+      }
+
+      const progressDelta = sumProgressDeltas([
+        ...rowsToPut.map((row, index) => getProgressDelta(rowsBeforePut[index] ?? null, row)),
+        ...entriesToDelete.map((row) => getProgressDelta(row, null)),
+      ]);
+
+      if (entriesToDelete.length > 0) {
+        await this.db.entries.bulkDelete(entriesToDelete.map((entry) => entry.entryId));
+      }
+      if (rowsToPut.length > 0) {
+        await this.db.entries.bulkPut(rowsToPut);
+      }
+      await this.applyProgressDelta(progressDelta);
+    });
   }
 
   async getBlob(blobId: string): Promise<CachedSyncBlobRow | null> {
@@ -550,8 +520,7 @@ export class DexieSyncStore implements SyncStore {
 
             for (let index = 0; index < accepted.length; index += 1) {
               const item = accepted[index];
-              const row =
-                existingRows[index] ?? createEmptyEntryRecord(item.mutation.entryId);
+              const row = existingRows[index] ?? createEmptyEntryRecord(item.mutation.entryId);
               const applied = applyAcceptedPushToEntry(row, item, plans[index]);
               if (applied === "retry") {
                 throw new AcceptedPushBatchRetryError();
@@ -564,9 +533,7 @@ export class DexieSyncStore implements SyncStore {
             }
 
             const progressDelta = sumProgressDeltas(
-              rowsToPut.map((row, index) =>
-                getProgressDelta(existingRows[index] ?? null, row),
-              ),
+              rowsToPut.map((row, index) => getProgressDelta(existingRows[index] ?? null, row)),
             );
             await this.db.entries.bulkPut(rowsToPut.map(normalizeEntryRecord));
             if (blobsToPut.length > 0) {
@@ -663,9 +630,7 @@ export class DexieSyncStore implements SyncStore {
     });
   }
 
-  private async assertRequiredBaseBlob(
-    mutation: Required<PendingMutationRow>,
-  ): Promise<void> {
+  private async assertRequiredBaseBlob(mutation: Required<PendingMutationRow>): Promise<void> {
     if (!mutation.baseBlobId || !mutation.baseHash) {
       return;
     }
@@ -707,12 +672,10 @@ class AcceptedPushBatchRetryError extends Error {
 }
 
 interface AcceptedPushApplyPlan {
-  rebase:
-    | {
-        pendingMutationId: string;
-        encryptedMetadata: string;
-      }
-    | null;
+  rebase: {
+    pendingMutationId: string;
+    encryptedMetadata: string;
+  } | null;
 }
 
 async function planAcceptedPushApply(
@@ -813,8 +776,7 @@ function shouldApplyAcceptedPushToLocal(
 ): boolean {
   return (
     !row.localKnown ||
-    (row.localHash === accepted.mutation.hash &&
-      row.localPath === accepted.metadata.path)
+    (row.localHash === accepted.mutation.hash && row.localPath === accepted.metadata.path)
   );
 }
 

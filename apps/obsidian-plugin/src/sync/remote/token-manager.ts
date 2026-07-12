@@ -59,11 +59,7 @@ export class SyncTokenManager {
     this.cachedToken = null;
   }
 
-  private canReuseToken(
-    token: SyncTokenResponse,
-    vaultId: string,
-    localVaultId: string,
-  ): boolean {
+  private canReuseToken(token: SyncTokenResponse, vaultId: string, localVaultId: string): boolean {
     return (
       token.vaultId === vaultId &&
       token.localVaultId === localVaultId &&

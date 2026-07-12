@@ -7,58 +7,45 @@ import {
 } from "../../http/network-status";
 import type { RemoteVaultUnavailableError } from "../../remote-vault/unavailable";
 import { hashBytes } from "../core/content";
+import { decryptSyncBlob, decryptSyncMetadata } from "../core/crypto";
+import type { SyncFileRules } from "../core/file-rules";
+import { shouldSyncVaultConfigPath, type VaultConfigSyncRules } from "../core/vault-config-rules";
+import { decideVaultPathSync, shouldApplyRemoteVaultPath } from "../core/vault-path-policy";
 import { SyncAutoLoop } from "../engine/auto-sync";
-import type { SyncTokenResponse } from "../remote/client";
 import { SyncEventGate } from "../engine/event-gate";
 import { SyncEventRecorder } from "../engine/event-recorder";
-import type { SyncFileRules } from "../core/file-rules";
-import {
-  shouldSyncVaultConfigPath,
-  type VaultConfigSyncRules,
-} from "../core/vault-config-rules";
-import {
-  decideVaultPathSync,
-  shouldApplyRemoteVaultPath,
-} from "../core/vault-path-policy";
-import { decryptSyncBlob, decryptSyncMetadata } from "../core/crypto";
 import {
   type ReconcileOnceResult,
   SyncLocalReconcileService,
 } from "../engine/local-reconcile-service";
+import { SyncPullService } from "../engine/pull-service";
 import { metadataContextFromMutation } from "../engine/push-mutation-shared";
-import {
-  ObsidianSyncVaultAdapter,
-  type SyncVaultFile,
-} from "../vault/obsidian-vault-adapter";
+import { SyncPushService } from "../engine/push-service";
+import { SyncBlobClient } from "../remote/blob-client";
+import type { SyncTokenResponse } from "../remote/client";
+import { SyncPullClient } from "../remote/pull-client";
+import type {
+  DeletedEntryPageCursor,
+  EntryVersion,
+  EntryVersionPageCursor,
+  SyncRealtimeSession,
+  SyncStorageStatus,
+} from "../remote/realtime-client";
+import { SyncAuthorizedRequestClient } from "../remote/request-client";
+import { getOrCreateStoredLocalVaultId, readStoredSyncConnection } from "../store/connection";
+import type { SyncStore } from "../store/store";
+import { ObsidianSyncVaultAdapter, type SyncVaultFile } from "../vault/obsidian-vault-adapter";
 import { ObsidianVaultConfigSource } from "../vault/obsidian-vault-config-source";
 import { removeVaultPathIfExists, writeVaultBytes } from "../vault/vault-writer";
-import { SyncPullService } from "../engine/pull-service";
-import { SyncPushService } from "../engine/push-service";
-import { SyncAuthorizedRequestClient } from "../remote/request-client";
-import { SyncBlobClient } from "../remote/blob-client";
-import { SyncPullClient } from "../remote/pull-client";
-import {
-  type EntryVersion,
-  type DeletedEntryPageCursor,
-  type EntryVersionPageCursor,
-  type SyncRealtimeSession,
-  type SyncStorageStatus,
-} from "../remote/realtime-client";
-import type { SyncStore } from "../store/store";
-import {
-  getOrCreateStoredLocalVaultId,
-  readStoredSyncConnection,
-} from "../store/connection";
-import type { UserVisibleSyncState } from "./user-visible-status";
-import type { UserVisibleSyncProgress } from "./user-visible-status";
+import type { UserVisibleSyncProgress, UserVisibleSyncState } from "./user-visible-status";
 import { SyncVaultEventHandler } from "./vault-event-handler";
 import {
-  SyncVersionHistoryService,
+  type SyncDeletedEntriesPage,
   type SyncDeletedEntriesPurgeResult,
   type SyncDeletedEntriesRestoreResult,
-  type SyncDeletedEntriesPage,
   type SyncEntryVersionPreview,
   type SyncEntryVersionsPage,
+  SyncVersionHistoryService,
 } from "./version-history-service";
 
 type SyncActivityKind = "push" | "pull" | "local";
@@ -92,9 +79,7 @@ export interface SyncEngineDeps {
   setStorageStatus: (status: SyncStorageStatus | null) => void;
   onFileSizeBlockedFilesChange?: () => void;
   onStorageQuotaExceeded?: () => void | Promise<void>;
-  onRemoteVaultUnavailable?: (
-    error: RemoteVaultUnavailableError,
-  ) => void | Promise<void>;
+  onRemoteVaultUnavailable?: (error: RemoteVaultUnavailableError) => void | Promise<void>;
   isOffline?: OfflineDetector;
 }
 
@@ -111,9 +96,8 @@ export class SyncEngine {
     () => this.deps.getSyncFileRules(),
     () => this.deps.getVaultConfigSyncRules(),
   );
-  private readonly vaultConfigSource = new ObsidianVaultConfigSource(
-    this.deps.plugin,
-    () => this.deps.getVaultConfigSyncRules(),
+  private readonly vaultConfigSource = new ObsidianVaultConfigSource(this.deps.plugin, () =>
+    this.deps.getVaultConfigSyncRules(),
   );
   private readonly syncEventRecorder = new SyncEventRecorder({
     getSyncStore: () => this.syncStore,
@@ -145,8 +129,7 @@ export class SyncEngine {
   private readonly syncLocalReconcileService = new SyncLocalReconcileService({
     getSyncStore: () => this.syncStore,
     getRemoteVaultKey: () => this.deps.getRemoteVaultKey(),
-    shouldSyncPath: (path) =>
-      this.decideVaultPathSync(path).kind === "sync",
+    shouldSyncPath: (path) => this.decideVaultPathSync(path).kind === "sync",
     scanner: {
       listFiles: async () => {
         const byPath = new Map<string, SyncVaultFile>();
@@ -377,9 +360,7 @@ export class SyncEngine {
           }
 
           const local = await store.getLocalStateById(remote.entryId);
-          const current = local
-            ? await store.getEntryById(remote.entryId)
-            : null;
+          const current = local ? await store.getEntryById(remote.entryId) : null;
           if (
             local &&
             current &&
@@ -478,10 +459,7 @@ export class SyncEngine {
   }
 
   private startHiddenFolderReconcileTimer(): void {
-    if (
-      this.hiddenFolderReconcileTimer !== null ||
-      !this.hasPolledReconcileSources()
-    ) {
+    if (this.hiddenFolderReconcileTimer !== null || !this.hasPolledReconcileSources()) {
       return;
     }
 
@@ -577,11 +555,7 @@ export class SyncEngine {
     before: EntryVersionPageCursor | null,
     limit: number,
   ): Promise<SyncEngineEntryVersionsPage | null> {
-    return await this.syncVersionHistoryService.listEntryVersionsForPath(
-      path,
-      before,
-      limit,
-    );
+    return await this.syncVersionHistoryService.listEntryVersionsForPath(path, before, limit);
   }
 
   async previewEntryVersionForPath(
@@ -591,10 +565,7 @@ export class SyncEngine {
     return await this.syncVersionHistoryService.previewEntryVersionForPath(path, version);
   }
 
-  async restoreEntryVersionForPath(
-    path: string,
-    version: EntryVersion,
-  ): Promise<void> {
+  async restoreEntryVersionForPath(path: string, version: EntryVersion): Promise<void> {
     await this.syncVersionHistoryService.restoreEntryVersionForPath(path, version);
   }
 
@@ -621,10 +592,7 @@ export class SyncEngine {
     entryId: string,
     fallbackPath: string,
   ): Promise<SyncEntryVersionPreview> {
-    return await this.syncVersionHistoryService.previewDeletedEntry(
-      entryId,
-      fallbackPath,
-    );
+    return await this.syncVersionHistoryService.previewDeletedEntry(entryId, fallbackPath);
   }
 
   async waitForLocalMutationWork(): Promise<void> {
@@ -649,10 +617,7 @@ export class SyncEngine {
     return run;
   }
 
-  private async withSyncActivity<T>(
-    kind: SyncActivityKind,
-    work: () => Promise<T>,
-  ): Promise<T> {
+  private async withSyncActivity<T>(kind: SyncActivityKind, work: () => Promise<T>): Promise<T> {
     const activity = this.beginSyncActivity(kind);
     try {
       return await work();

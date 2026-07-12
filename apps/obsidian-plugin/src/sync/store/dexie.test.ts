@@ -1,13 +1,7 @@
-import { describe, expect, it } from "vitest";
-
 import type { Plugin } from "obsidian";
-
-import {
-  clearDexieSyncStore,
-  createDexieSyncStore,
-  readDexieSyncStoreConnection,
-} from "./dexie";
+import { describe, expect, it } from "vitest";
 import { replacePendingMutationForEntry } from "../core/mutation-queue";
+import { clearDexieSyncStore, createDexieSyncStore, readDexieSyncStoreConnection } from "./dexie";
 
 describe("DexieSyncStore", () => {
   it("creates and persists entry ids by path", async () => {
@@ -451,9 +445,7 @@ describe("DexieSyncStore", () => {
     });
 
     expect(await store.getEntryByPath("Notes/deleted.md")).toBeNull();
-    expect(await store.getOrCreateEntryId("Notes/deleted.md")).not.toBe(
-      "entry-deleted",
-    );
+    expect(await store.getOrCreateEntryId("Notes/deleted.md")).not.toBe("entry-deleted");
     await store.close();
   });
 

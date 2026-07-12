@@ -1,11 +1,8 @@
-import {
-  createPasswordWrappedRemoteVaultKey,
-  unwrapRemoteVaultKeyWithPassword,
-} from "./crypto";
 import { formatVaultPasswordValidationError, t } from "../i18n";
+import { RemoteVaultClient } from "./client";
+import { createPasswordWrappedRemoteVaultKey, unwrapRemoteVaultKeyWithPassword } from "./crypto";
 import type { StoredRemoteVaultKeySecret } from "./device-storage";
 import { validateVaultPassword } from "./password-policy";
-import { RemoteVaultClient } from "./client";
 import type {
   RemoteVaultBootstrapResponse,
   RemoteVaultKeyWrapperRecord,
@@ -31,9 +28,7 @@ export interface RemoteVaultManagerDeps {
   hasAuthenticatedSession: () => boolean;
   getStoredRemoteVaultId: () => string | null;
   getStoredRemoteVaultKeySecret: () => StoredRemoteVaultKeySecret | null;
-  saveStoredRemoteVaultKeySecret: (
-    vault: StoredRemoteVaultKeySecret | null,
-  ) => Promise<void>;
+  saveStoredRemoteVaultKeySecret: (vault: StoredRemoteVaultKeySecret | null) => Promise<void>;
   refreshUi: () => void;
   notify: (message: string) => void;
   remoteVaultClient?: RemoteVaultClient;
@@ -262,19 +257,13 @@ function validateCreateInput(input: CreateRemoteVaultInput): void {
   }
 }
 
-function findPasswordWrapper(
-  wrappers: RemoteVaultKeyWrapperRecord[],
-): RemoteVaultKeyWrapperRecord {
+function findPasswordWrapper(wrappers: RemoteVaultKeyWrapperRecord[]): RemoteVaultKeyWrapperRecord {
   const wrapper =
     wrappers.find(
       (candidate) =>
-        candidate.kind === "password" &&
-        candidate.userId !== null &&
-        candidate.revokedAt === null,
+        candidate.kind === "password" && candidate.userId !== null && candidate.revokedAt === null,
     ) ??
-    wrappers.find(
-      (candidate) => candidate.kind === "password" && candidate.revokedAt === null,
-    );
+    wrappers.find((candidate) => candidate.kind === "password" && candidate.revokedAt === null);
 
   if (!wrapper) {
     throw new Error("No active password wrapper found for this vault.");
@@ -287,9 +276,7 @@ function formatVaultLabel(vault: Pick<RemoteVaultSessionSummary, "vaultId" | "va
   return vault.vaultName;
 }
 
-function formatStoredVaultLabel(
-  vault: string | RemoteVaultSessionSummary,
-): string {
+function formatStoredVaultLabel(vault: string | RemoteVaultSessionSummary): string {
   if (typeof vault === "string") {
     return vault;
   }

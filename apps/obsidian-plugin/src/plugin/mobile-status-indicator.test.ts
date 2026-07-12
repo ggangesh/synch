@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { Plugin } from "obsidian";
+import { describe, expect, it } from "vitest";
 
 import { SynchMobileStatusIndicator } from "./mobile-status-indicator";
 import type { SynchStorageStatus, SynchSyncState } from "./view-models";
@@ -119,9 +119,7 @@ describe("SynchMobileStatusIndicator", () => {
     expect(item.classes).toContain("synch-mobile-status-indicator");
     expect(item.classes).toContain("synch-status-attention-needed");
     expect(item.classes.has("synch-mobile-status-indicator-hidden")).toBe(false);
-    expect(item.attributes.get("aria-label")).toBe(
-      "Synch needs attention. Open Synch settings",
-    );
+    expect(item.attributes.get("aria-label")).toBe("Synch needs attention. Open Synch settings");
     expect(item.attributes.get("data-synch-sync-state")).toBe("attention_needed");
     expect(item.attributes.get("data-synch-storage-warning")).toBe("false");
     expect(item.children[0].attributes.get("data-icon")).toBe("triangle-alert");

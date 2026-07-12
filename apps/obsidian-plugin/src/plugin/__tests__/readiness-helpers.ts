@@ -3,14 +3,11 @@ import { vi } from "vitest";
 
 import { writeAuthSessionToken } from "../../auth/storage";
 import { writeStoredRemoteVaultKeySecret } from "../../remote-vault/device-storage";
+import { SYNCH_SETTINGS_KEY, type SynchPluginSettings } from "../../settings/schema";
 import { DEFAULT_SYNC_FILE_RULES } from "../../sync/core/file-rules";
 import { DEFAULT_VAULT_CONFIG_SYNC_RULES } from "../../sync/core/vault-config-rules";
 import type { SyncConnection } from "../../sync/store/store";
-import { SYNCH_SETTINGS_KEY, type SynchPluginSettings } from "../../settings/schema";
-import {
-  Plugin as TestPluginClass,
-  setRequestUrlMock,
-} from "../../test-stubs/obsidian";
+import { setRequestUrlMock, Plugin as TestPluginClass } from "../../test-stubs/obsidian";
 
 const TestPlugin = TestPluginClass as unknown as new () => Plugin;
 

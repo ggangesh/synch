@@ -15,10 +15,7 @@ export interface BillingStatus {
 }
 
 export class BillingClient {
-  async readBillingStatus(
-    apiBaseUrl: string,
-    sessionToken: string,
-  ): Promise<BillingStatus> {
+  async readBillingStatus(apiBaseUrl: string, sessionToken: string): Promise<BillingStatus> {
     const response = await requestUrl({
       url: `${stripTrailingSlash(apiBaseUrl)}/v1/billing/status`,
       method: "GET",

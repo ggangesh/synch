@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { resetObsidianMocks, setLanguage } from "obsidian";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { getSynchLocale, t } from "./i18n";
 

@@ -1,6 +1,6 @@
-import { createSyncCryptoContext, type SyncCryptoContext } from "./crypto";
 import type { SyncMutationStore } from "../store/ports";
 import type { PendingMutationRow } from "../store/store";
+import { createSyncCryptoContext, type SyncCryptoContext } from "./crypto";
 
 export type PendingMutationWriter = Pick<SyncMutationStore, "replaceDirtyEntry">;
 

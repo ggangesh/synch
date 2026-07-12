@@ -1,14 +1,6 @@
 import { hashBytes } from "../core/content";
 import { decryptSyncMetadata } from "../core/crypto";
-import type { SyncEventGateLike } from "./event-gate";
-import {
-  queueLocalDeleteMutation,
-  queueLocalUpsertMutation,
-} from "../core/mutation-queue";
-import type {
-  LocalSyncEntryRow,
-  RemoteSyncEntryRow,
-} from "../store/store";
+import { queueLocalDeleteMutation, queueLocalUpsertMutation } from "../core/mutation-queue";
 import type {
   SyncEntryStore,
   SyncLocalEntryStore,
@@ -16,6 +8,8 @@ import type {
   SyncRemoteEntryStore,
   SyncStoreLifecycle,
 } from "../store/ports";
+import type { LocalSyncEntryRow, RemoteSyncEntryRow } from "../store/store";
+import type { SyncEventGateLike } from "./event-gate";
 import { isAutoMergeTextPath } from "./text-merge-policy";
 
 export interface SyncEventRecorderDeps {
@@ -26,20 +20,11 @@ export interface SyncEventRecorderDeps {
 
 export interface SyncEventRecorderStore
   extends Pick<SyncEntryStore, "deleteEntry" | "getEntryByPath" | "getOrCreateEntryId">,
-    Pick<
-      SyncLocalEntryStore,
-      "applyLocalState" | "getLocalStateById" | "getLocalStateByPath"
-    >,
-    Pick<
-      SyncRemoteEntryStore,
-      "getRemoteStateById" | "getRemoteStateByPath"
-    >,
+    Pick<SyncLocalEntryStore, "applyLocalState" | "getLocalStateById" | "getLocalStateByPath">,
+    Pick<SyncRemoteEntryStore, "getRemoteStateById" | "getRemoteStateByPath">,
     Pick<
       SyncMutationStore,
-      | "getDirtyEntryMutation"
-      | "listDirtyEntries"
-      | "markEntryClean"
-      | "replaceDirtyEntry"
+      "getDirtyEntryMutation" | "listDirtyEntries" | "markEntryClean" | "replaceDirtyEntry"
     >,
     Pick<SyncStoreLifecycle, "flush"> {}
 
@@ -124,8 +109,7 @@ export class SyncEventRecorder {
 
     const store = this.requireStore();
     const existing =
-      (await store.getLocalStateByPath(oldPath)) ??
-      (await store.getLocalStateByPath(nextPath));
+      (await store.getLocalStateByPath(oldPath)) ?? (await store.getLocalStateByPath(nextPath));
     if (!existing) {
       return await this.recordUpsert(nextPath, bytes);
     }
@@ -181,8 +165,7 @@ export class SyncEventRecorder {
 
     const store = this.requireStore();
     const existing =
-      (await store.getLocalStateByPath(path)) ??
-      (await store.getRemoteStateByPath(path));
+      (await store.getLocalStateByPath(path)) ?? (await store.getRemoteStateByPath(path));
     if (!existing) {
       return false;
     }
@@ -242,16 +225,12 @@ export class SyncEventRecorder {
         continue;
       }
 
-      const metadata = await decryptSyncMetadata(
-        remoteVaultKey,
-        pending.encryptedMetadata,
-        {
-          entryId: pending.entryId,
-          revision: pending.baseRevision + 1,
-          op: pending.op,
-          blobId: pending.blobId,
-        },
-      );
+      const metadata = await decryptSyncMetadata(remoteVaultKey, pending.encryptedMetadata, {
+        entryId: pending.entryId,
+        revision: pending.baseRevision + 1,
+        op: pending.op,
+        blobId: pending.blobId,
+      });
       if (metadata.path !== path) {
         continue;
       }
@@ -271,32 +250,19 @@ function buildLocalEntrySnapshot(
     entryId: overrides.entryId ?? existing?.entryId ?? crypto.randomUUID(),
     path: overrides.path !== undefined ? overrides.path : (existing?.path ?? null),
     blobId: overrides.blobId !== undefined ? overrides.blobId : (existing?.blobId ?? null),
-    hash:
-      overrides.hash !== undefined
-        ? overrides.hash
-        : (existing?.hash ?? null),
+    hash: overrides.hash !== undefined ? overrides.hash : (existing?.hash ?? null),
     deleted: overrides.deleted,
     updatedAt: overrides.updatedAt,
-    localMtime:
-      overrides.localMtime !== undefined
-        ? overrides.localMtime
-        : localMtimeOf(existing),
-    localSize:
-      overrides.localSize !== undefined
-        ? overrides.localSize
-        : localSizeOf(existing),
+    localMtime: overrides.localMtime !== undefined ? overrides.localMtime : localMtimeOf(existing),
+    localSize: overrides.localSize !== undefined ? overrides.localSize : localSizeOf(existing),
   };
 }
 
-function localMtimeOf(
-  entry: LocalSyncEntryRow | RemoteSyncEntryRow | null,
-): number | null {
+function localMtimeOf(entry: LocalSyncEntryRow | RemoteSyncEntryRow | null): number | null {
   return entry && "localMtime" in entry ? entry.localMtime : null;
 }
 
-function localSizeOf(
-  entry: LocalSyncEntryRow | RemoteSyncEntryRow | null,
-): number | null {
+function localSizeOf(entry: LocalSyncEntryRow | RemoteSyncEntryRow | null): number | null {
   return entry && "localSize" in entry ? entry.localSize : null;
 }
 
@@ -308,9 +274,6 @@ async function getVisibleRemoteEntryByPath(
   return visible ? await store.getRemoteStateById(visible.entryId) : null;
 }
 
-function shouldRequireBaseBlob(
-  path: string,
-  remote: RemoteSyncEntryRow | null,
-): boolean {
+function shouldRequireBaseBlob(path: string, remote: RemoteSyncEntryRow | null): boolean {
   return !!remote && !remote.deleted && !!remote.blobId && isAutoMergeTextPath(path);
 }

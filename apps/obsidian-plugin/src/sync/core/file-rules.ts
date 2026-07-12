@@ -16,8 +16,7 @@ const IMAGE_EXTENSIONS = new Set([
 const AUDIO_EXTENSIONS = new Set(["mp3", "m4a", "wav", "flac", "ogg", "aac"]);
 const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "mkv", "webm", "avi", "m4v"]);
 const PDF_EXTENSIONS = new Set(["pdf"]);
-const SYNC_CONFLICT_FILE_PATTERN =
-  /\.sync-conflict-\d{8}-\d{6}(?:-\d+)?(?:\.[^/.]+)?$/;
+const SYNC_CONFLICT_FILE_PATTERN = /\.sync-conflict-\d{8}-\d{6}(?:-\d+)?(?:\.[^/.]+)?$/;
 
 export interface SyncFileRules {
   includeImages: boolean;
@@ -59,9 +58,7 @@ export function normalizeSyncFileRules(value: unknown): SyncFileRules {
       DEFAULT_SYNC_FILE_RULES.includeOtherFiles,
     ),
     excludedFolders: normalizeExcludedFolders(record.excludedFolders),
-    includedHiddenFolders: normalizeIncludedHiddenFolders(
-      record.includedHiddenFolders,
-    ),
+    includedHiddenFolders: normalizeIncludedHiddenFolders(record.includedHiddenFolders),
   };
 }
 
@@ -149,11 +146,7 @@ export function normalizeIncludedHiddenFolders(value: unknown): string[] {
     }
 
     const normalized = normalizeVaultPath(entry);
-    if (
-      !normalized ||
-      !hasHiddenSegment(normalized) ||
-      isReservedSyncPath(normalized)
-    ) {
+    if (!normalized || !hasHiddenSegment(normalized) || isReservedSyncPath(normalized)) {
       continue;
     }
 
@@ -171,9 +164,7 @@ export function normalizeVaultPath(path: string): string {
 function pruneSubpaths(sortedPaths: readonly string[]): string[] {
   const result: string[] = [];
   for (const path of sortedPaths) {
-    const coveredByExisting = result.some((parent) =>
-      path.startsWith(`${parent}/`),
-    );
+    const coveredByExisting = result.some((parent) => path.startsWith(`${parent}/`));
     if (!coveredByExisting) {
       result.push(path);
     }
@@ -186,9 +177,7 @@ function isExcludedByFolder(path: string, excludedFolders: ReadonlyArray<string>
 }
 
 function isIncludedByFolder(path: string, folders: ReadonlyArray<string>): boolean {
-  return folders.some(
-    (folder) => path === folder || path.startsWith(`${folder}/`),
-  );
+  return folders.some((folder) => path === folder || path.startsWith(`${folder}/`));
 }
 
 function hasHiddenSegment(path: string): boolean {

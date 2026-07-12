@@ -1,9 +1,18 @@
-import { TFile, type Plugin, type WorkspaceLeaf } from "obsidian";
-
+import { type Plugin, TFile, type WorkspaceLeaf } from "obsidian";
+import { type SyncFileRules, shouldSyncPath } from "../sync/core/file-rules";
+import type { EntryVersion } from "../sync/remote/realtime-client";
+import type { SyncController } from "../sync/runtime/controller";
+import type { SyncDeletedEntry } from "../sync/runtime/version-history-service";
+import {
+  SYNCH_VERSION_HISTORY_VIEW_TYPE,
+  SynchVersionHistoryView,
+  type VersionHistoryViewController,
+  type VersionHistoryViewState,
+} from "./version-history-view";
 import type {
+  SynchDeletedFile,
   SynchDeletedFileCursor,
   SynchDeletedFilesPage,
-  SynchDeletedFile,
   SynchDeletedFilesPurgeResult,
   SynchDeletedFilesRestoreResult,
   SynchEntryVersion,
@@ -11,16 +20,6 @@ import type {
   SynchEntryVersionsPage,
   SynchVersionPreview,
 } from "./view-models";
-import {
-  SYNCH_VERSION_HISTORY_VIEW_TYPE,
-  SynchVersionHistoryView,
-  type VersionHistoryViewController,
-  type VersionHistoryViewState,
-} from "./version-history-view";
-import { shouldSyncPath, type SyncFileRules } from "../sync/core/file-rules";
-import type { EntryVersion } from "../sync/remote/realtime-client";
-import type { SyncController } from "../sync/runtime/controller";
-import type { SyncDeletedEntry } from "../sync/runtime/version-history-service";
 
 export interface SynchVersionHistoryControllerDeps {
   plugin: Plugin;
@@ -31,9 +30,7 @@ export interface SynchVersionHistoryControllerDeps {
   refreshUi: () => void;
 }
 
-export class SynchVersionHistoryController
-  implements VersionHistoryViewController
-{
+export class SynchVersionHistoryController implements VersionHistoryViewController {
   private readonly activeFileVersionsById = new Map<string, EntryVersion>();
 
   constructor(private readonly deps: SynchVersionHistoryControllerDeps) {}
@@ -51,9 +48,7 @@ export class SynchVersionHistoryController
     active: boolean;
     reveal: boolean;
   }): Promise<WorkspaceLeaf> {
-    const leaves = this.deps.plugin.app.workspace.getLeavesOfType(
-      SYNCH_VERSION_HISTORY_VIEW_TYPE,
-    );
+    const leaves = this.deps.plugin.app.workspace.getLeavesOfType(SYNCH_VERSION_HISTORY_VIEW_TYPE);
     const existingLeaf = leaves[0];
     if (existingLeaf) {
       for (const leaf of leaves.slice(1)) {
@@ -100,11 +95,7 @@ export class SynchVersionHistoryController
       };
     }
 
-    const page = await this.deps.syncController.listEntryVersionsForPath(
-      file.path,
-      before,
-      limit,
-    );
+    const page = await this.deps.syncController.listEntryVersionsForPath(file.path, before, limit);
     if (!page) {
       return {
         status: "not_synced",
@@ -148,10 +139,7 @@ export class SynchVersionHistoryController
     if (!version) {
       throw new Error("Refresh version history before previewing this version.");
     }
-    const preview = await this.deps.syncController.previewEntryVersionForPath(
-      file.path,
-      version,
-    );
+    const preview = await this.deps.syncController.previewEntryVersionForPath(file.path, version);
     if (preview.status !== "text") {
       return preview;
     }
@@ -185,9 +173,7 @@ export class SynchVersionHistoryController
     };
   }
 
-  async restoreDeletedFiles(
-    files: SynchDeletedFile[],
-  ): Promise<SynchDeletedFilesRestoreResult> {
+  async restoreDeletedFiles(files: SynchDeletedFile[]): Promise<SynchDeletedFilesRestoreResult> {
     if (!this.deps.hasAuthenticatedSession() || !this.deps.hasConnectedRemoteVault()) {
       throw new Error("Connect and sign in before restoring deleted files.");
     }
@@ -202,9 +188,7 @@ export class SynchVersionHistoryController
     return result;
   }
 
-  async purgeDeletedFiles(
-    files: SynchDeletedFile[],
-  ): Promise<SynchDeletedFilesPurgeResult> {
+  async purgeDeletedFiles(files: SynchDeletedFile[]): Promise<SynchDeletedFilesPurgeResult> {
     if (!this.deps.hasAuthenticatedSession() || !this.deps.hasConnectedRemoteVault()) {
       throw new Error("Connect and sign in before purging deleted files.");
     }
@@ -219,10 +203,7 @@ export class SynchVersionHistoryController
     return result;
   }
 
-  async previewDeletedFile(
-    entryId: string,
-    fallbackPath: string,
-  ): Promise<SynchVersionPreview> {
+  async previewDeletedFile(entryId: string, fallbackPath: string): Promise<SynchVersionPreview> {
     if (!this.deps.hasAuthenticatedSession() || !this.deps.hasConnectedRemoteVault()) {
       throw new Error("Connect and sign in before previewing deleted files.");
     }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncEventRecorder } from "../../event-recorder";
 import {
   decryptPendingMetadata,
@@ -54,9 +56,7 @@ describe("SyncEventRecorder synced entries", () => {
       encryptedMetadata: expect.any(String),
       createdAt: expect.any(Number),
     });
-    await expect(
-      decryptPendingMetadata(pending[0]),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(pending[0])).resolves.toEqual({
       path: "Folder/file.md",
       hash: null,
     });
@@ -217,9 +217,7 @@ describe("SyncEventRecorder synced entries", () => {
       blobId: "blob-1",
       hash,
     });
-    await expect(
-      decryptPendingMetadata(pending),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(pending)).resolves.toEqual({
       path: "Folder/file.md",
       hash,
     });

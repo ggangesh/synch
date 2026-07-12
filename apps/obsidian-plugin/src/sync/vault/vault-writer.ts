@@ -29,10 +29,7 @@ export async function writeVaultBytes(
 }
 
 export async function writeVaultBinary(
-  writer: Pick<
-    SyncVaultWriter,
-    "exists" | "mkdir" | "writeBinary" | "isProtectedVaultPath"
-  >,
+  writer: Pick<SyncVaultWriter, "exists" | "mkdir" | "writeBinary" | "isProtectedVaultPath">,
   path: string,
   bytes: Uint8Array,
 ): Promise<void> {
@@ -42,10 +39,7 @@ export async function writeVaultBinary(
 }
 
 export async function writeVaultText(
-  writer: Pick<
-    SyncVaultWriter,
-    "exists" | "mkdir" | "writeText" | "isProtectedVaultPath"
-  >,
+  writer: Pick<SyncVaultWriter, "exists" | "mkdir" | "writeText" | "isProtectedVaultPath">,
   path: string,
   content: string,
 ): Promise<void> {
@@ -55,10 +49,7 @@ export async function writeVaultText(
 }
 
 export async function renameVaultPath(
-  writer: Pick<
-    SyncVaultWriter,
-    "exists" | "mkdir" | "rename" | "isProtectedVaultPath"
-  >,
+  writer: Pick<SyncVaultWriter, "exists" | "mkdir" | "rename" | "isProtectedVaultPath">,
   oldPath: string,
   newPath: string,
 ): Promise<void> {

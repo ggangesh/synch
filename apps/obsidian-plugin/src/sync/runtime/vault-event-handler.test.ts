@@ -99,9 +99,7 @@ describe("SyncVaultEventHandler", () => {
   });
 });
 
-function createPlugin(
-  callbacks: Partial<Record<VaultEventName, VaultEventCallback>>,
-): Plugin {
+function createPlugin(callbacks: Partial<Record<VaultEventName, VaultEventCallback>>): Plugin {
   return {
     registerEvent: vi.fn(),
     app: {

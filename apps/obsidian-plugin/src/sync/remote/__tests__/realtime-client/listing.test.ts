@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  openRealtimeSession,
-  waitForSentMessage,
-} from "./helpers";
+import { openRealtimeSession, waitForSentMessage } from "./helpers";
 
 describe("SyncRealtimeClient listing", () => {
   it("lists entry-state delta pages over the realtime session", async () => {

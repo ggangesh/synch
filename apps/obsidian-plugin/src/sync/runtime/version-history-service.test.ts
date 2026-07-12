@@ -1,16 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-
+import { createInitializedTestSyncStore, createTestPlugin } from "../../test-support/test-plugin";
 import { hashBytes } from "../core/content";
 import { encryptSyncBlob, encryptSyncMetadata } from "../core/crypto";
 import type { SyncRealtimeSession } from "../remote/realtime-client";
-import {
-  createInitializedTestSyncStore,
-  createTestPlugin,
-} from "../../test-support/test-plugin";
-import {
-  SyncVersionHistoryService,
-  type SyncVersionHistoryStore,
-} from "./version-history-service";
+import { SyncVersionHistoryService, type SyncVersionHistoryStore } from "./version-history-service";
 
 const TEST_VAULT_KEY = new Uint8Array(Array.from({ length: 32 }, (_, index) => index + 1));
 const TEST_BLOB_OPTIONS = { syncFormatVersion: 1 };
@@ -31,9 +24,7 @@ describe("SyncVersionHistoryService", () => {
     const withRealtimeSession = vi.fn();
     const service = createService(store, { withRealtimeSession });
 
-    await expect(
-      service.listEntryVersionsForPath("local-only.md", null, 25),
-    ).resolves.toBeNull();
+    await expect(service.listEntryVersionsForPath("local-only.md", null, 25)).resolves.toBeNull();
     expect(withRealtimeSession).not.toHaveBeenCalled();
 
     await store.close();
@@ -362,15 +353,18 @@ describe("SyncVersionHistoryService", () => {
       body,
     });
     const pullClient = createPullClient({
-      "blob-old": await encryptSyncBlob(TEST_VAULT_KEY, new TextEncoder().encode(body), {
-        blobId: "blob-old",
-      }, TEST_BLOB_OPTIONS),
+      "blob-old": await encryptSyncBlob(
+        TEST_VAULT_KEY,
+        new TextEncoder().encode(body),
+        {
+          blobId: "blob-old",
+        },
+        TEST_BLOB_OPTIONS,
+      ),
     });
     const service = createService(store, { pullClient });
 
-    await expect(
-      service.previewEntryVersionForPath("Folder/active.md", version),
-    ).resolves.toEqual({
+    await expect(service.previewEntryVersionForPath("Folder/active.md", version)).resolves.toEqual({
       status: "text",
       path: "Folder/active.md",
       reason: "before_delete",
@@ -394,9 +388,7 @@ describe("SyncVersionHistoryService", () => {
       localMtime: null,
       localSize: null,
     });
-    const bytes = new Uint8Array([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x01,
-    ]);
+    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x01]);
     const version = await createEntryVersion({
       entryId: "entry-active",
       sourceRevision: 2,
@@ -405,15 +397,18 @@ describe("SyncVersionHistoryService", () => {
       bytes,
     });
     const pullClient = createPullClient({
-      "blob-old": await encryptSyncBlob(TEST_VAULT_KEY, bytes, {
-        blobId: "blob-old",
-      }, TEST_BLOB_OPTIONS),
+      "blob-old": await encryptSyncBlob(
+        TEST_VAULT_KEY,
+        bytes,
+        {
+          blobId: "blob-old",
+        },
+        TEST_BLOB_OPTIONS,
+      ),
     });
     const service = createService(store, { pullClient });
 
-    await expect(
-      service.previewEntryVersionForPath("Images/photo.png", version),
-    ).resolves.toEqual({
+    await expect(service.previewEntryVersionForPath("Images/photo.png", version)).resolves.toEqual({
       status: "image",
       path: "Images/photo.png",
       reason: "before_delete",
@@ -467,9 +462,14 @@ describe("SyncVersionHistoryService", () => {
     });
     const service = createService(store, {
       pullClient: createPullClient({
-        "blob-old": await encryptSyncBlob(TEST_VAULT_KEY, new TextEncoder().encode(body), {
-          blobId: "blob-old",
-        }, TEST_BLOB_OPTIONS),
+        "blob-old": await encryptSyncBlob(
+          TEST_VAULT_KEY,
+          new TextEncoder().encode(body),
+          {
+            blobId: "blob-old",
+          },
+          TEST_BLOB_OPTIONS,
+        ),
       }),
       withRealtimeSession: async (work) => await work(session),
     });
@@ -601,9 +601,9 @@ describe("SyncVersionHistoryService", () => {
       }),
     });
 
-    await expect(
-      service.previewEntryVersionForPath("Folder/active.md", version),
-    ).rejects.toThrow("Version preview hash does not match metadata.");
+    await expect(service.previewEntryVersionForPath("Folder/active.md", version)).rejects.toThrow(
+      "Version preview hash does not match metadata.",
+    );
 
     await store.close();
   });
@@ -634,9 +634,9 @@ describe("SyncVersionHistoryService", () => {
       },
     });
 
-    await expect(
-      service.previewEntryVersionForPath("Folder/active.md", version),
-    ).rejects.toThrow("download failed");
+    await expect(service.previewEntryVersionForPath("Folder/active.md", version)).rejects.toThrow(
+      "download failed",
+    );
 
     await store.close();
   });
@@ -768,9 +768,7 @@ function createService(
   });
 }
 
-function createRealtimeSession(
-  overrides: Partial<SyncRealtimeSession>,
-): SyncRealtimeSession {
+function createRealtimeSession(overrides: Partial<SyncRealtimeSession>): SyncRealtimeSession {
   return {
     serverCursor: 0,
     storageUsedBytes: 0,
@@ -847,9 +845,7 @@ async function createEntryVersion(input: {
   };
 }
 
-function createPullClient(
-  blobs: Record<string, Uint8Array>,
-): {
+function createPullClient(blobs: Record<string, Uint8Array>): {
   downloadBlob(
     apiBaseUrl: string,
     syncToken: string,

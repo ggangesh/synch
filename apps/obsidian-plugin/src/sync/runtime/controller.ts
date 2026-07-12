@@ -9,6 +9,8 @@ import {
   isRemoteVaultUnavailableError,
   type RemoteVaultUnavailableError,
 } from "../../remote-vault/unavailable";
+import type { SyncFileRules } from "../core/file-rules";
+import type { VaultConfigSyncRules } from "../core/vault-config-rules";
 import type { SyncTokenResponse } from "../remote/client";
 import type {
   DeletedEntryPageCursor,
@@ -16,29 +18,29 @@ import type {
   EntryVersionPageCursor,
   SyncStorageStatus,
 } from "../remote/realtime-client";
-import type { SyncFileRules } from "../core/file-rules";
-import type { VaultConfigSyncRules } from "../core/vault-config-rules";
 import {
   clearDexieSyncStore,
   createDexieSyncStore,
   readDexieSyncStoreConnection,
 } from "../store/dexie";
 import type { SyncConnection } from "../store/store";
-import type { SyncDeletedEntriesPage } from "./version-history-service";
-import type { SyncDeletedEntriesRestoreResult } from "./version-history-service";
-import type { SyncDeletedEntriesPurgeResult } from "./version-history-service";
 import {
   SyncEngine,
   type SyncEngineEntryVersionsPage,
   type SyncFileSizeBlockedFile,
 } from "./engine";
-import type { SyncEntryVersionPreview } from "./version-history-service";
 import {
   formatUserVisibleSyncState,
   getUserVisibleSyncDisplayPercent,
   type UserVisibleSyncProgress,
   type UserVisibleSyncState,
 } from "./user-visible-status";
+import type {
+  SyncDeletedEntriesPage,
+  SyncDeletedEntriesPurgeResult,
+  SyncDeletedEntriesRestoreResult,
+  SyncEntryVersionPreview,
+} from "./version-history-service";
 
 export interface SyncControllerDeps {
   plugin: Plugin;
@@ -57,9 +59,7 @@ export interface SyncControllerDeps {
   onStorageStatusChange?: () => void;
   onFileSizeBlockedFilesChange?: () => void;
   onStorageQuotaExceeded?: () => void | Promise<void>;
-  onRemoteVaultUnavailable?: (
-    error: RemoteVaultUnavailableError,
-  ) => void | Promise<void>;
+  onRemoteVaultUnavailable?: (error: RemoteVaultUnavailableError) => void | Promise<void>;
   isOffline?: OfflineDetector;
 }
 
@@ -446,9 +446,7 @@ export class SyncController {
     new Notice(message, timeout);
   }
 
-  private async handleRemoteVaultUnavailable(
-    error: RemoteVaultUnavailableError,
-  ): Promise<void> {
+  private async handleRemoteVaultUnavailable(error: RemoteVaultUnavailableError): Promise<void> {
     this.stopAutoSyncAndMarkNotReady();
     await this.deps.onRemoteVaultUnavailable?.(error);
   }

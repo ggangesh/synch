@@ -1,11 +1,8 @@
-import type { SyncBlobClient } from "../remote/blob-client";
 import type { ConflictFileWriter } from "../core/conflict-file";
 import type { SyncedEntryMetadata } from "../core/content";
 import type { SyncCryptoContext } from "../core/crypto";
-import type {
-  CommitAcceptedResult,
-  CommitMutationPayload,
-} from "../remote/realtime-client";
+import type { SyncBlobClient } from "../remote/blob-client";
+import type { CommitAcceptedResult, CommitMutationPayload } from "../remote/realtime-client";
 import type {
   SyncBlobStore,
   SyncEntryStore,

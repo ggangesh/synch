@@ -24,7 +24,7 @@ export function parseSyncedEntryMetadata(value: string): SyncedEntryMetadata {
   if (!path) {
     throw new Error("Sync metadata is missing a file path.");
   }
-  if (!Object.prototype.hasOwnProperty.call(record, "hash")) {
+  if (!Object.hasOwn(record, "hash")) {
     throw new Error("Sync metadata is missing a hash.");
   }
   const hash =
@@ -52,9 +52,7 @@ export async function hashBytes(bytes: Uint8Array): Promise<string> {
       ? bytes.buffer
       : bytes.slice().buffer,
   );
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function encodeUtf8(value: string): Uint8Array {

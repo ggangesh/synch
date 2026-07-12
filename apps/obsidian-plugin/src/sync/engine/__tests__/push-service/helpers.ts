@@ -1,17 +1,14 @@
-
-import type { SyncTokenResponse } from "../../../remote/client";
 import { encryptSyncMetadata } from "../../../core/crypto";
-import type { SyncStore } from "../../../store/store";
+import type { SyncTokenResponse } from "../../../remote/client";
 import {
+  type CommitMutationPayload,
+  type CommitMutationsResult,
   SyncRealtimeError,
   type SyncRealtimeSession,
-  type CommitMutationsResult,
-  type CommitMutationPayload,
 } from "../../../remote/realtime-client";
+import type { SyncStore } from "../../../store/store";
 
-export const TEST_VAULT_KEY = new Uint8Array(
-  Array.from({ length: 32 }, (_, index) => index + 1),
-);
+export const TEST_VAULT_KEY = new Uint8Array(Array.from({ length: 32 }, (_, index) => index + 1));
 
 export function createToken(): SyncTokenResponse {
   return {
@@ -45,15 +42,15 @@ export function createPushSession(
     },
     async restoreEntryVersion() {
       throw new Error("push tests should not restore entry versions");
-	    },
+    },
     async restoreEntryVersions() {
       throw new Error("push tests should not restore entry versions");
     },
     async purgeDeletedEntries() {
       throw new Error("push tests should not purge deleted entries");
     },
-	    async detachLocalVault() {},
-	    commitMutation,
+    async detachLocalVault() {},
+    commitMutation,
     async commitMutations(mutations): Promise<CommitMutationsResult> {
       if (commitMutations) {
         return await commitMutations(mutations);

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { Plugin } from "obsidian";
+import { describe, expect, it } from "vitest";
 
 import {
   getStatusBarIcon,
@@ -98,11 +98,7 @@ function createPlugin(): Plugin & {
       addedStatusBarItems.push(item);
       return item as unknown as HTMLElement;
     },
-    registerDomEvent: (
-      element: FakeStatusBarElement,
-      type: string,
-      callback: () => void,
-    ) => {
+    registerDomEvent: (element: FakeStatusBarElement, type: string, callback: () => void) => {
       element.addEventListener(type, callback);
     },
   } as unknown as Plugin & {
@@ -184,20 +180,19 @@ describe("SynchStatusBar", () => {
     ["reconnecting", 0, true],
     ["up_to_date", 100, false],
     ["attention_needed", 0, false],
-  ] satisfies Array<[SynchSyncState, number, boolean]>)(
-    "maps %s to status bar attributes and classes",
-    (syncState, percent, active) => {
-      const plugin = createPlugin();
+  ] satisfies Array<
+    [SynchSyncState, number, boolean]
+  >)("maps %s to status bar attributes and classes", (syncState, percent, active) => {
+    const plugin = createPlugin();
 
-      const statusBar = new SynchStatusBar(plugin, createState(syncState, percent));
+    const statusBar = new SynchStatusBar(plugin, createState(syncState, percent));
 
-      statusBar.initialize();
+    statusBar.initialize();
 
-      const item = plugin.addedStatusBarItems[0];
-      expectElementState(item, syncState, percent);
-      expect(item.classes.has("synch-status-active")).toBe(active);
-    },
-  );
+    const item = plugin.addedStatusBarItems[0];
+    expectElementState(item, syncState, percent);
+    expect(item.classes.has("synch-status-active")).toBe(active);
+  });
 
   it("shows a storage warning without changing the sync state", () => {
     const plugin = createPlugin();

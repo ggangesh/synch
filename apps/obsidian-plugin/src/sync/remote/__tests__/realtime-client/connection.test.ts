@@ -1,11 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { SyncRealtimeError } from "../../realtime-client";
-import {
-  createMutation,
-  openRealtimeSession,
-  waitForSentMessage,
-} from "./helpers";
+import { createMutation, openRealtimeSession, waitForSentMessage } from "./helpers";
 
 describe("SyncRealtimeClient connection health", () => {
   it("exposes the server storage and file size policy from hello acknowledgement", async () => {
@@ -184,9 +180,7 @@ describe("SyncRealtimeClient connection health", () => {
 
     await vi.advanceTimersByTimeAsync(250);
 
-    expect(errors.map((error) => error.message)).toEqual([
-      "sync websocket request timed out",
-    ]);
+    expect(errors.map((error) => error.message)).toEqual(["sync websocket request timed out"]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

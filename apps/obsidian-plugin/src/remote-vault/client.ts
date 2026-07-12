@@ -1,16 +1,16 @@
 import {
   createApiRequestError,
   defaultHttpClient,
-  stripTrailingSlash,
   type HttpClient,
+  stripTrailingSlash,
 } from "../http/request";
-import { remoteVaultUnavailableFromApiError } from "./unavailable";
 import type {
   CreateRemoteVaultResponse,
   RemoteVaultBootstrapResponse,
   RemoteVaultKeyWrapper,
   RemoteVaultSummaryResponse,
 } from "./types";
+import { remoteVaultUnavailableFromApiError } from "./unavailable";
 
 export class RemoteVaultClient {
   constructor(private readonly httpClient: HttpClient = defaultHttpClient) {}
@@ -75,10 +75,7 @@ export class RemoteVaultClient {
     });
 
     if (response.status < 200 || response.status >= 300) {
-      throw createApiRequestError(
-        response,
-        `vault request failed with status ${response.status}`,
-      );
+      throw createApiRequestError(response, `vault request failed with status ${response.status}`);
     }
 
     return response.json as T;

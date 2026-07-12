@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { hashBytes } from "../../../core/content";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   arrangePendingUpsertWithCachedBase,
   createCommit,
@@ -14,8 +16,8 @@ import {
   encryptTestBlob,
   hashText,
   ignoreProgress,
-  TEST_VAULT_KEY,
   type PullConflictSummary,
+  TEST_VAULT_KEY,
 } from "./helpers";
 
 const conflictTimestamp = () => new Date(2026, 3, 22, 10, 11, 12).getTime();
@@ -73,10 +75,7 @@ describe("SyncPullService pending upsert rebase conflict resolution", () => {
     });
     const client = createPullClient({
       blobs: {
-        "blob-remote": await encryptTestBlob(
-          "blob-remote",
-          new TextEncoder().encode(remoteBody),
-        ),
+        "blob-remote": await encryptTestBlob("blob-remote", new TextEncoder().encode(remoteBody)),
       },
     });
 
@@ -185,10 +184,7 @@ describe("SyncPullService pending upsert rebase conflict resolution", () => {
     });
     const client = createPullClient({
       blobs: {
-        "blob-remote": await encryptTestBlob(
-          "blob-remote",
-          new TextEncoder().encode(remoteBody),
-        ),
+        "blob-remote": await encryptTestBlob("blob-remote", new TextEncoder().encode(remoteBody)),
       },
     });
 
@@ -219,9 +215,7 @@ describe("SyncPullService pending upsert rebase conflict resolution", () => {
       conflictsCreated: 1,
     });
     expect(adapter.text("Folder/note.md")).toBe(remoteBody);
-    expect(adapter.text("Folder/note.sync-conflict-20260422-101112.md")).toBe(
-      localBody,
-    );
+    expect(adapter.text("Folder/note.sync-conflict-20260422-101112.md")).toBe(localBody);
     expect(await store.getRemoteStateById("entry-note")).toMatchObject({
       revision: 3,
       blobId: "blob-remote",

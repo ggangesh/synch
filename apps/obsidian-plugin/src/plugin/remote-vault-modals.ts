@@ -1,10 +1,7 @@
-import { App, Modal, Setting } from "obsidian";
+import { type App, Modal, Setting } from "obsidian";
 
 import { formatVaultPasswordValidationError, t } from "../i18n";
-import type {
-  BootstrapRemoteVaultInput,
-  CreateRemoteVaultInput,
-} from "../remote-vault/manager";
+import type { BootstrapRemoteVaultInput, CreateRemoteVaultInput } from "../remote-vault/manager";
 import { validateVaultPassword } from "../remote-vault/password-policy";
 import type { RemoteVaultRecord } from "../remote-vault/types";
 
@@ -26,9 +23,7 @@ export async function openBootstrapRemoteVaultModal(
   return await modal.openAndWait();
 }
 
-export async function openConfirmConnectNonEmptyLocalVaultModal(
-  app: App,
-): Promise<boolean> {
+export async function openConfirmConnectNonEmptyLocalVaultModal(app: App): Promise<boolean> {
   const modal = new ConfirmConnectNonEmptyLocalVaultModal(app);
   return await modal.openAndWait();
 }
@@ -103,13 +98,11 @@ class CreateRemoteVaultModal extends Modal {
       .addText((text) => {
         text.inputEl.type = "password";
         text.inputEl.autocomplete = "new-password";
-        text
-          .setPlaceholder(t("vault.passwordConfirmPlaceholder"))
-          .onChange((value) => {
-            this.confirmPassword = value;
-            updatePasswordError();
-            updateCreateButtonState();
-          });
+        text.setPlaceholder(t("vault.passwordConfirmPlaceholder")).onChange((value) => {
+          this.confirmPassword = value;
+          updatePasswordError();
+          updateCreateButtonState();
+        });
       });
 
     passwordErrorEl = contentEl.createEl("p", {
@@ -124,25 +117,28 @@ class CreateRemoteVaultModal extends Modal {
         });
       })
       .addButton((button) => {
-        button.setButtonText(t("vault.create")).setCta().onClick(async () => {
-          if (this.getValidationError() !== null) {
-            updatePasswordError();
-            updateCreateButtonState();
-            return;
-          }
+        button
+          .setButtonText(t("vault.create"))
+          .setCta()
+          .onClick(async () => {
+            if (this.getValidationError() !== null) {
+              updatePasswordError();
+              updateCreateButtonState();
+              return;
+            }
 
-          const confirmed = await new ConfirmCreateRemoteVaultBackupModal(this.app).openAndWait();
-          if (!confirmed) {
-            return;
-          }
+            const confirmed = await new ConfirmCreateRemoteVaultBackupModal(this.app).openAndWait();
+            if (!confirmed) {
+              return;
+            }
 
-          this.result = {
-            name: this.vaultName,
-            password: this.password,
-            confirmPassword: this.confirmPassword,
-          };
-          this.close();
-        });
+            this.result = {
+              name: this.vaultName,
+              password: this.password,
+              confirmPassword: this.confirmPassword,
+            };
+            this.close();
+          });
         createButton = button;
         updateCreateButtonState();
       });
@@ -221,10 +217,13 @@ class ConfirmCreateRemoteVaultBackupModal extends Modal {
         });
       })
       .addButton((button) => {
-        button.setButtonText(t("vault.backupConfirm")).setCta().onClick(() => {
-          this.confirmed = true;
-          this.close();
-        });
+        button
+          .setButtonText(t("vault.backupConfirm"))
+          .setCta()
+          .onClick(() => {
+            this.confirmed = true;
+            this.close();
+          });
       });
   }
 
@@ -267,10 +266,13 @@ class ConfirmConnectNonEmptyLocalVaultModal extends Modal {
         });
       })
       .addButton((button) => {
-        button.setButtonText(t("connectAnyway")).setCta().onClick(() => {
-          this.confirmed = true;
-          this.close();
-        });
+        button
+          .setButtonText(t("connectAnyway"))
+          .setCta()
+          .onClick(() => {
+            this.confirmed = true;
+            this.close();
+          });
       });
   }
 
@@ -301,7 +303,7 @@ class BootstrapRemoteVaultModal extends Modal {
     this.selectedVaultId =
       preferredVaultId && vaults.some((vault) => vault.id === preferredVaultId)
         ? preferredVaultId
-        : vaults[0]?.id ?? "";
+        : (vaults[0]?.id ?? "");
   }
 
   async openAndWait(): Promise<BootstrapRemoteVaultInput | null> {
@@ -344,9 +346,12 @@ class BootstrapRemoteVaultModal extends Modal {
       });
 
       new Setting(contentEl).addButton((button) => {
-        button.setButtonText(t("close")).setCta().onClick(() => {
-          this.close();
-        });
+        button
+          .setButtonText(t("close"))
+          .setCta()
+          .onClick(() => {
+            this.close();
+          });
       });
       return;
     }
@@ -384,28 +389,31 @@ class BootstrapRemoteVaultModal extends Modal {
         cancelButton = button;
       })
       .addButton((button) => {
-        button.setButtonText(t("vault.connect")).setCta().onClick(async () => {
-          if (this.submitting) {
-            return;
-          }
+        button
+          .setButtonText(t("vault.connect"))
+          .setCta()
+          .onClick(async () => {
+            if (this.submitting) {
+              return;
+            }
 
-          const input = {
-            vaultId: this.selectedVaultId,
-            password: this.password,
-          };
+            const input = {
+              vaultId: this.selectedVaultId,
+              password: this.password,
+            };
 
-          setError("");
-          setSubmitting(true);
-          try {
-            await this.onConnect?.(input);
-            this.result = input;
-            this.allowSubmittingClose = true;
-            this.close();
-          } catch (error) {
-            setError(formatErrorMessage(error));
-            setSubmitting(false);
-          }
-        });
+            setError("");
+            setSubmitting(true);
+            try {
+              await this.onConnect?.(input);
+              this.result = input;
+              this.allowSubmittingClose = true;
+              this.close();
+            } catch (error) {
+              setError(formatErrorMessage(error));
+              setSubmitting(false);
+            }
+          });
         connectButton = button;
       });
   }
@@ -443,7 +451,6 @@ class BootstrapRemoteVaultModal extends Modal {
         selectedLabel.setText(t("vault.selected", { label: this.getSelectedVaultLabel() }));
         this.renderVaultButtons(containerEl, selectedLabel);
       });
-
     }
   }
 

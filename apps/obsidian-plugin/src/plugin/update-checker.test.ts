@@ -15,15 +15,11 @@ describe("compareStrictSemver", () => {
   });
 
   it("rejects malformed versions", () => {
-    expect(() => compareStrictSemver("1.2", "1.2.3")).toThrow(
-      "Expected strict x.y.z versions.",
-    );
+    expect(() => compareStrictSemver("1.2", "1.2.3")).toThrow("Expected strict x.y.z versions.");
     expect(() => compareStrictSemver("1.2.3-beta.1", "1.2.3")).toThrow(
       "Expected strict x.y.z versions.",
     );
-    expect(() => compareStrictSemver("01.2.3", "1.2.3")).toThrow(
-      "Expected strict x.y.z versions.",
-    );
+    expect(() => compareStrictSemver("01.2.3", "1.2.3")).toThrow("Expected strict x.y.z versions.");
   });
 });
 

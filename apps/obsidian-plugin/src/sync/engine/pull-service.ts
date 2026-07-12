@@ -1,17 +1,14 @@
 import type { SyncTokenResponse } from "../remote/client";
-import type { SyncEventGateLike } from "./event-gate";
 import { SyncPullClient } from "../remote/pull-client";
 import type { SyncRealtimeSession } from "../remote/realtime-client";
-import type {
-  SyncCursorStore,
-  SyncStoreLifecycle,
-} from "../store/ports";
+import type { SyncCursorStore, SyncStoreLifecycle } from "../store/ports";
 import type { SyncProgressCounts } from "../store/store";
+import type { SyncEventGateLike } from "./event-gate";
 import {
   type PullConflictEvent,
   PullEntryStateApplier,
-  type PullEntryStateStore,
   type PullEntryStateManifestItem,
+  type PullEntryStateStore,
   type PullEntryStateVaultAdapter,
 } from "./pull-entry-state-applier";
 
@@ -61,8 +58,7 @@ export class SyncPullService {
       eventGate: this.deps.eventGate,
       pullClient: this.pullClient,
       shouldApplyRemotePath: this.deps.shouldApplyRemotePath,
-      prepareConcurrency:
-        this.deps.prepareConcurrency ?? DEFAULT_PULL_PREPARE_CONCURRENCY,
+      prepareConcurrency: this.deps.prepareConcurrency ?? DEFAULT_PULL_PREPARE_CONCURRENCY,
       onProgress: async (progress) => {
         await this.deps.onProgress(progress);
       },
@@ -111,18 +107,13 @@ export class SyncPullService {
 
       if (window.length >= applyWindowSize || !hasMore) {
         const appliedWindow = window;
-        const applied = await this.entryStateApplier.applyManifestWindow(
-          store,
-          token,
-          window,
-          {
-            finalWindow: !hasMore,
-            progress: {
-              completedOffset: totals.entriesApplied,
-              totalEntries,
-            },
+        const applied = await this.entryStateApplier.applyManifestWindow(store, token, window, {
+          finalWindow: !hasMore,
+          progress: {
+            completedOffset: totals.entriesApplied,
+            totalEntries,
           },
-        );
+        });
         totals.entriesApplied += applied.entriesApplied;
         totals.filesWritten += applied.filesWritten;
         totals.filesDeleted += applied.filesDeleted;
@@ -141,18 +132,13 @@ export class SyncPullService {
 
     if (window.length > 0) {
       const appliedWindow = window;
-      const applied = await this.entryStateApplier.applyManifestWindow(
-        store,
-        token,
-        window,
-        {
-          finalWindow: true,
-          progress: {
-            completedOffset: totals.entriesApplied,
-            totalEntries,
-          },
+      const applied = await this.entryStateApplier.applyManifestWindow(store, token, window, {
+        finalWindow: true,
+        progress: {
+          completedOffset: totals.entriesApplied,
+          totalEntries,
         },
-      );
+      });
       totals.entriesApplied += applied.entriesApplied;
       totals.filesWritten += applied.filesWritten;
       totals.filesDeleted += applied.filesDeleted;
@@ -168,7 +154,7 @@ export class SyncPullService {
     }
 
     cursor = targetCursor ?? cursor;
-    if (cursor > await store.getCursor()) {
+    if (cursor > (await store.getCursor())) {
       await store.setCursor(cursor);
       await store.flush();
     }
@@ -184,18 +170,13 @@ export class SyncPullService {
 
   private async checkpointAppliedWindow(
     store: SyncPullStore,
-    session: SyncRealtimeSession,
+    _session: SyncRealtimeSession,
     currentCursor: number,
     window: PullEntryStateManifestItem[],
     deferred: PullEntryStateManifestItem[],
     finalTargetCursor: number | null,
   ): Promise<number> {
-    const safeCursor = getSafeCheckpointCursor(
-      currentCursor,
-      window,
-      deferred,
-      finalTargetCursor,
-    );
+    const safeCursor = getSafeCheckpointCursor(currentCursor, window, deferred, finalTargetCursor);
     if (safeCursor <= currentCursor) {
       return currentCursor;
     }
@@ -223,9 +204,7 @@ function getSafeCheckpointCursor(
   finalTargetCursor: number | null,
 ): number {
   if (deferred.length > 0) {
-    const firstDeferredCursor = Math.min(
-      ...deferred.map((item) => item.state.updatedSeq),
-    );
+    const firstDeferredCursor = Math.min(...deferred.map((item) => item.state.updatedSeq));
     return Math.max(currentCursor, firstDeferredCursor - 1);
   }
 
@@ -233,9 +212,6 @@ function getSafeCheckpointCursor(
     return Math.max(currentCursor, finalTargetCursor);
   }
 
-  const lastAppliedCursor = Math.max(
-    currentCursor,
-    ...window.map((item) => item.state.updatedSeq),
-  );
+  const lastAppliedCursor = Math.max(currentCursor, ...window.map((item) => item.state.updatedSeq));
   return lastAppliedCursor;
 }

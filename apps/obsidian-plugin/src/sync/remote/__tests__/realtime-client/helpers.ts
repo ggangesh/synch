@@ -1,8 +1,8 @@
 import {
   type CommitMutationPayload,
-  type SyncRealtimeClientOptions,
-  SyncRealtimeClient,
   type SyncRealtimeCallbacks,
+  SyncRealtimeClient,
+  type SyncRealtimeClientOptions,
   type SyncRealtimeSession,
 } from "../../realtime-client";
 
@@ -17,19 +17,21 @@ export function createMutation(): CommitMutationPayload {
   };
 }
 
-export async function openRealtimeSession(input: {
-  socket?: MockWebSocket;
-  callbacks?: Partial<SyncRealtimeCallbacks>;
-  clientOptions?: Partial<SyncRealtimeClientOptions>;
-  helloPolicy?: {
-    storageLimitBytes: number;
-    maxFileSizeBytes: number;
-  };
-  helloStorageStatus?: {
-    storageUsedBytes: number;
-    storageLimitBytes: number;
-  };
-} = {}): Promise<{
+export async function openRealtimeSession(
+  input: {
+    socket?: MockWebSocket;
+    callbacks?: Partial<SyncRealtimeCallbacks>;
+    clientOptions?: Partial<SyncRealtimeClientOptions>;
+    helloPolicy?: {
+      storageLimitBytes: number;
+      maxFileSizeBytes: number;
+    };
+    helloStorageStatus?: {
+      storageUsedBytes: number;
+      storageLimitBytes: number;
+    };
+  } = {},
+): Promise<{
   socket: MockWebSocket;
   session: SyncRealtimeSession;
 }> {
@@ -90,10 +92,7 @@ export async function openRealtimeSession(input: {
   };
 }
 
-export async function waitForSentMessage(
-  socket: MockWebSocket,
-  index: number,
-): Promise<void> {
+export async function waitForSentMessage(socket: MockWebSocket, index: number): Promise<void> {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     if (socket.sent.length > index) {
       return;

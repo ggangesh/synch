@@ -18,6 +18,12 @@
   white-space: nowrap;
 }
 
+.synch-status-bar-icon {
+  display: inline-flex;
+  height: 1em;
+  width: 1em;
+}
+
 .synch-status-bar {
   align-items: center;
   color: var(--text-muted);
@@ -43,12 +49,6 @@
 
 .synch-status-bar.synch-status-storage-warning {
   color: var(--text-warning);
-}
-
-.synch-status-bar-icon {
-  display: inline-flex;
-  height: 1em;
-  width: 1em;
 }
 
 .synch-status-bar-icon svg {

@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SyncRealtimeError } from "../../realtime-client";
-import {
-  openRealtimeSession,
-  waitForSentMessage,
-} from "./helpers";
+import { openRealtimeSession, waitForSentMessage } from "./helpers";
 
 describe("SyncRealtimeClient restore", () => {
   it("routes restore failures to the pending request", async () => {

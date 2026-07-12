@@ -28,13 +28,19 @@ const TEST_BLOB_V2_OPTIONS = {
 
 describe("sync crypto", () => {
   it("round-trips encrypted metadata", async () => {
-    const encrypted = await encryptSyncMetadata(TEST_VAULT_KEY, {
-      path: "Folder/note.md",
-      hash: "hash-1",
-    }, TEST_METADATA_CONTEXT);
+    const encrypted = await encryptSyncMetadata(
+      TEST_VAULT_KEY,
+      {
+        path: "Folder/note.md",
+        hash: "hash-1",
+      },
+      TEST_METADATA_CONTEXT,
+    );
 
     expect(encrypted).not.toContain("Folder/note.md");
-    await expect(decryptSyncMetadata(TEST_VAULT_KEY, encrypted, TEST_METADATA_CONTEXT)).resolves.toEqual({
+    await expect(
+      decryptSyncMetadata(TEST_VAULT_KEY, encrypted, TEST_METADATA_CONTEXT),
+    ).resolves.toEqual({
       path: "Folder/note.md",
       hash: "hash-1",
     });
@@ -74,10 +80,13 @@ describe("sync crypto", () => {
 
   it("reuses a vault-scoped crypto context across payload types", async () => {
     const context = createSyncCryptoContext(TEST_VAULT_KEY);
-    const metadata = await context.encryptMetadata({
-      path: "Folder/context.md",
-      hash: "hash-context",
-    }, TEST_METADATA_CONTEXT);
+    const metadata = await context.encryptMetadata(
+      {
+        path: "Folder/context.md",
+        hash: "hash-context",
+      },
+      TEST_METADATA_CONTEXT,
+    );
     const blob = await context.encryptBlob(
       new Uint8Array([7, 8, 9]),
       TEST_BLOB_CONTEXT,
@@ -95,11 +104,7 @@ describe("sync crypto", () => {
 
   it("rejects use after disposing a vault-scoped crypto context", async () => {
     const context = createSyncCryptoContext(TEST_VAULT_KEY);
-    await context.encryptBlob(
-      new Uint8Array([1]),
-      TEST_BLOB_CONTEXT,
-      TEST_BLOB_OPTIONS,
-    );
+    await context.encryptBlob(new Uint8Array([1]), TEST_BLOB_CONTEXT, TEST_BLOB_OPTIONS);
 
     context.dispose();
 
@@ -110,20 +115,21 @@ describe("sync crypto", () => {
 
   it("rejects unsupported sync blob format versions", async () => {
     await expect(
-      encryptSyncBlob(
-        TEST_VAULT_KEY,
-        new Uint8Array([1, 2, 3]),
-        TEST_BLOB_CONTEXT,
-        { syncFormatVersion: 3 },
-      ),
+      encryptSyncBlob(TEST_VAULT_KEY, new Uint8Array([1, 2, 3]), TEST_BLOB_CONTEXT, {
+        syncFormatVersion: 3,
+      }),
     ).rejects.toThrow("Unsupported sync blob format version: 3.");
   });
 
   it("rejects the wrong vault key", async () => {
-    const encrypted = await encryptSyncMetadata(TEST_VAULT_KEY, {
-      path: "Folder/secret.md",
-      hash: "hash-1",
-    }, TEST_METADATA_CONTEXT);
+    const encrypted = await encryptSyncMetadata(
+      TEST_VAULT_KEY,
+      {
+        path: "Folder/secret.md",
+        hash: "hash-1",
+      },
+      TEST_METADATA_CONTEXT,
+    );
 
     await expect(
       decryptSyncMetadata(WRONG_VAULT_KEY, encrypted, TEST_METADATA_CONTEXT),
@@ -157,12 +163,7 @@ describe("sync crypto", () => {
     );
 
     await expect(
-      decryptSyncBlob(
-        TEST_VAULT_KEY,
-        encrypted,
-        { blobId: "blob-2" },
-        TEST_BLOB_OPTIONS,
-      ),
+      decryptSyncBlob(TEST_VAULT_KEY, encrypted, { blobId: "blob-2" }, TEST_BLOB_OPTIONS),
     ).rejects.toThrow();
   });
 
@@ -175,12 +176,7 @@ describe("sync crypto", () => {
     );
 
     await expect(
-      decryptSyncBlob(
-        TEST_VAULT_KEY,
-        encrypted,
-        { blobId: "blob-2" },
-        TEST_BLOB_V2_OPTIONS,
-      ),
+      decryptSyncBlob(TEST_VAULT_KEY, encrypted, { blobId: "blob-2" }, TEST_BLOB_V2_OPTIONS),
     ).rejects.toThrow();
   });
 });

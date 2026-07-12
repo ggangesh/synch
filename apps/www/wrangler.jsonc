@@ -1,11 +1,11 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "synch-www",
-	"compatibility_date": "2026-04-17",
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./dist",
-		"html_handling": "force-trailing-slash",
-		"not_found_handling": "none"
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "synch-www",
+  "compatibility_date": "2026-04-17",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "html_handling": "force-trailing-slash",
+    "not_found_handling": "none"
+  }
 }

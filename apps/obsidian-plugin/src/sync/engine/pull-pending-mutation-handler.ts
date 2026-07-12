@@ -1,19 +1,14 @@
-import { hashBytes } from "../core/content";
 import { getAvailableConflictCopyPath } from "../core/conflict-file";
-import {
-  decryptSyncBlob,
-  decryptSyncMetadata,
-  encryptSyncMetadata,
-} from "../core/crypto";
-import type {
-  PendingMutationRow,
-  SyncEntryStateRow,
-} from "../store/store";
+import { hashBytes } from "../core/content";
+import { decryptSyncBlob, decryptSyncMetadata, encryptSyncMetadata } from "../core/crypto";
 import type { SyncTokenResponse } from "../remote/client";
-import {
-  writeVaultBinary,
-  writeVaultBytes,
-} from "../vault/vault-writer";
+import type { PendingMutationRow, SyncEntryStateRow } from "../store/store";
+import { writeVaultBinary, writeVaultBytes } from "../vault/vault-writer";
+import type {
+  PullEntryStateApplierDeps,
+  PullEntryStateStore,
+  PullEntryStateVaultAdapter,
+} from "./pull-entry-state-applier";
 import {
   decodeUtf8,
   metadataContextFromPendingMutation,
@@ -22,11 +17,6 @@ import {
   type PreparedPendingConflict,
   type PreparedPendingMerge,
 } from "./pull-entry-state-internal";
-import type {
-  PullEntryStateApplierDeps,
-  PullEntryStateStore,
-  PullEntryStateVaultAdapter,
-} from "./pull-entry-state-applier";
 import { mergeText3 } from "./text-merge";
 import { isAutoMergeTextPath } from "./text-merge-policy";
 
@@ -50,12 +40,7 @@ export class PullPendingMutationHandler {
       metadataContextFromPendingMutation(pending),
     );
     if (
-      await isSameEntryPendingMutationAlreadyRemote(
-        pending,
-        metadata,
-        plan,
-        this.deps.vaultAdapter,
-      )
+      await isSameEntryPendingMutationAlreadyRemote(pending, metadata, plan, this.deps.vaultAdapter)
     ) {
       return {
         plan,
@@ -67,13 +52,7 @@ export class PullPendingMutationHandler {
     }
 
     const entryState = await store.getEntryStateById(pending.entryId);
-    const merge = await this.preparePendingTextMerge(
-      store,
-      token,
-      plan,
-      entryState,
-      remoteBlob,
-    );
+    const merge = await this.preparePendingTextMerge(store, token, plan, entryState, remoteBlob);
     if (merge) {
       return {
         plan,

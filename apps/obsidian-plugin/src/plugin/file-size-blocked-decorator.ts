@@ -1,4 +1,4 @@
-import { setIcon, setTooltip, type Plugin } from "obsidian";
+import { type Plugin, setIcon, setTooltip } from "obsidian";
 
 import { getSynchLocale } from "../i18n";
 import type { SynchFileSizeBlockedFile } from "./view-models";

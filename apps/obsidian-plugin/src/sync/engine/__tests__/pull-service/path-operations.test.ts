@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   createCommit,
   createEventGate,
@@ -21,9 +23,9 @@ describe("SyncPullService path operations", () => {
     const plugin = createTestPlugin();
     const store = await createInitializedTestSyncStore(plugin);
     const adapter = createVaultAdapter({
-      ".obsidian/app.json": "{\"theme\":\"local\"}",
+      ".obsidian/app.json": '{"theme":"local"}',
     });
-    const configHash = await hashText("{\"theme\":\"remote\"}");
+    const configHash = await hashText('{"theme":"remote"}');
 
     const session = createRealtimeSession({
       pages: [
@@ -67,7 +69,7 @@ describe("SyncPullService path operations", () => {
       filesDeleted: 0,
       conflictsCreated: 0,
     });
-    expect(adapter.text(".obsidian/app.json")).toBe("{\"theme\":\"local\"}");
+    expect(adapter.text(".obsidian/app.json")).toBe('{"theme":"local"}');
     expect(adapter.writes).toEqual([]);
     expect(await store.getRemoteStateById("entry-config")).toMatchObject({
       entryId: "entry-config",
@@ -123,10 +125,7 @@ describe("SyncPullService path operations", () => {
     });
     const client = createPullClient({
       blobs: {
-        "blob-new": await encryptTestBlob(
-          "blob-new",
-          new TextEncoder().encode("renamed content"),
-        ),
+        "blob-new": await encryptTestBlob("blob-new", new TextEncoder().encode("renamed content")),
       },
     });
 
@@ -150,9 +149,7 @@ describe("SyncPullService path operations", () => {
       filesDeleted: 0,
       conflictsCreated: 0,
     });
-    expect(adapter.renames).toEqual([
-      { oldPath: "Old/path.md", newPath: "New/path.md" },
-    ]);
+    expect(adapter.renames).toEqual([{ oldPath: "Old/path.md", newPath: "New/path.md" }]);
     expect(adapter.removes).toEqual([]);
     expect(adapter.text("Old/path.md")).toBeNull();
     expect(adapter.text("New/path.md")).toBe("renamed content");
@@ -517,5 +514,4 @@ describe("SyncPullService path operations", () => {
 
     await store.close();
   });
-
 });

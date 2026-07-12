@@ -1,12 +1,12 @@
 import type { VaultSyncStatusSummary } from "./types";
 
 export class VaultSyncStatusRepository {
-	constructor(private readonly db: D1Database) {}
+  constructor(private readonly db: D1Database) {}
 
-	async upsert(summary: VaultSyncStatusSummary, flushedAt: number): Promise<void> {
-		await this.db
-			.prepare(
-				`
+  async upsert(summary: VaultSyncStatusSummary, flushedAt: number): Promise<void> {
+    await this.db
+      .prepare(
+        `
 				INSERT INTO vault_sync_status (
 					vault_id,
 					health_status,
@@ -52,28 +52,28 @@ export class VaultSyncStatusRepository {
 					last_flush_error_at = NULL,
 					updated_at = excluded.updated_at
 				`,
-			)
-			.bind(
-				summary.vaultId,
-				summary.healthStatus,
-				JSON.stringify(summary.healthReasons),
-				summary.currentCursor,
-				summary.entryCount,
-				summary.liveBlobCount,
-				summary.stagedBlobCount,
-				summary.pendingDeleteBlobCount,
-				summary.storageUsedBytes,
-				summary.storageLimitBytes,
-				summary.activeLocalVaultCount,
-				summary.websocketCount,
-				summary.oldestStagedBlobAgeMs,
-				summary.oldestPendingDeleteAgeMs,
-				summary.lastCommitAt,
-				summary.lastGcAt,
-				flushedAt,
-				flushedAt,
-				flushedAt,
-			)
-			.run();
-	}
+      )
+      .bind(
+        summary.vaultId,
+        summary.healthStatus,
+        JSON.stringify(summary.healthReasons),
+        summary.currentCursor,
+        summary.entryCount,
+        summary.liveBlobCount,
+        summary.stagedBlobCount,
+        summary.pendingDeleteBlobCount,
+        summary.storageUsedBytes,
+        summary.storageLimitBytes,
+        summary.activeLocalVaultCount,
+        summary.websocketCount,
+        summary.oldestStagedBlobAgeMs,
+        summary.oldestPendingDeleteAgeMs,
+        summary.lastCommitAt,
+        summary.lastGcAt,
+        flushedAt,
+        flushedAt,
+        flushedAt,
+      )
+      .run();
+  }
 }

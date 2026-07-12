@@ -2,9 +2,7 @@ declare const __SYNCH_API_BASE_URL__: string;
 
 const FALLBACK_API_BASE_URL = "http://127.0.0.1:8787";
 const API_BASE_URL = normalizeApiBaseUrl(
-  typeof __SYNCH_API_BASE_URL__ === "string"
-    ? __SYNCH_API_BASE_URL__
-    : FALLBACK_API_BASE_URL,
+  typeof __SYNCH_API_BASE_URL__ === "string" ? __SYNCH_API_BASE_URL__ : FALLBACK_API_BASE_URL,
   FALLBACK_API_BASE_URL,
 );
 

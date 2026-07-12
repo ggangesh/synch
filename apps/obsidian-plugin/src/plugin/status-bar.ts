@@ -1,4 +1,4 @@
-import { setIcon, type Plugin } from "obsidian";
+import { type Plugin, setIcon } from "obsidian";
 
 import { t } from "../i18n";
 import { isStorageWarningStatus } from "../utils/storage-warning";
@@ -130,13 +130,10 @@ export class SynchStatusBar {
         ? t("status.storageAlmostFull")
         : state === "update_required"
           ? t("status.pluginUpdateRequired")
-        : t("status.openSettings"),
+          : t("status.openSettings"),
     );
     this.statusBar.setAttribute("data-synch-sync-state", state);
     this.statusBar.setAttribute("data-synch-sync-percent", String(this.state.getSyncPercent()));
-    this.statusBar.setAttribute(
-      "data-synch-storage-warning",
-      hasStorageWarning ? "true" : "false",
-    );
+    this.statusBar.setAttribute("data-synch-storage-warning", hasStorageWarning ? "true" : "false");
   }
 }

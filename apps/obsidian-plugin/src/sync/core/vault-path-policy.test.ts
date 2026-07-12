@@ -63,24 +63,14 @@ describe("decideVaultPathSync", () => {
   });
 
   it("marks never-sync and device-local config paths as forbidden", () => {
-    expect(isForbiddenVaultPath(".git/config", DEFAULT_VAULT_CONFIG_SYNC_RULES)).toBe(
+    expect(isForbiddenVaultPath(".git/config", DEFAULT_VAULT_CONFIG_SYNC_RULES)).toBe(true);
+    expect(isForbiddenVaultPath(".obsidian/workspace.json", DEFAULT_VAULT_CONFIG_SYNC_RULES)).toBe(
       true,
     );
     expect(
-      isForbiddenVaultPath(
-        ".obsidian/workspace.json",
-        DEFAULT_VAULT_CONFIG_SYNC_RULES,
-      ),
+      isForbiddenVaultPath(".obsidian/plugins/synch/data.json", DEFAULT_VAULT_CONFIG_SYNC_RULES),
     ).toBe(true);
-    expect(
-      isForbiddenVaultPath(
-        ".obsidian/plugins/synch/data.json",
-        DEFAULT_VAULT_CONFIG_SYNC_RULES,
-      ),
-    ).toBe(true);
-    expect(
-      isForbiddenVaultPath(".obsidian/app.json", DEFAULT_VAULT_CONFIG_SYNC_RULES),
-    ).toBe(false);
+    expect(isForbiddenVaultPath(".obsidian/app.json", DEFAULT_VAULT_CONFIG_SYNC_RULES)).toBe(false);
   });
 
   it("keeps the default Obsidian config folder protected when another config folder is active", () => {
@@ -91,12 +81,8 @@ describe("decideVaultPathSync", () => {
     };
 
     expect(isForbiddenVaultPath(".obsidian/app.json", vaultConfigRules)).toBe(true);
-    expect(
-      isForbiddenVaultPath(".obsidian/workspace.json", vaultConfigRules),
-    ).toBe(true);
-    expect(
-      isForbiddenVaultPath(".obsidian-mobile/app.json", vaultConfigRules),
-    ).toBe(false);
+    expect(isForbiddenVaultPath(".obsidian/workspace.json", vaultConfigRules)).toBe(true);
+    expect(isForbiddenVaultPath(".obsidian-mobile/app.json", vaultConfigRules)).toBe(false);
   });
 });
 

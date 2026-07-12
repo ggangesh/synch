@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
 import { setRequestUrlMock } from "obsidian";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { SyncAccessClient } from "./client";
 
@@ -27,14 +27,10 @@ describe("SyncAccessClient", () => {
     });
 
     const client = new SyncAccessClient();
-    const response = await client.issueSyncToken(
-      "http://127.0.0.1:8787/",
-      "session-token",
-      {
-        vaultId: "vault-1",
-        localVaultId: "local-vault-1",
-      },
-    );
+    const response = await client.issueSyncToken("http://127.0.0.1:8787/", "session-token", {
+      vaultId: "vault-1",
+      localVaultId: "local-vault-1",
+    });
 
     expect(capturedRequest).toMatchObject({
       url: "http://127.0.0.1:8787/v1/sync/token",

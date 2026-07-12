@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { SyncRealtimeError, type CommitMutationPayload } from "../../../remote/realtime-client";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
+import { type CommitMutationPayload, SyncRealtimeError } from "../../../remote/realtime-client";
 import { SyncPullService } from "../../pull-service";
 import { SyncPushService } from "../../push-service";
 import {
@@ -61,11 +63,10 @@ describe("SyncPushService stale revisions", () => {
     const written: Array<{ path: string; bytes: string }> = [];
     const session = createPushSession(async (mutation) => {
       committed.push(mutation);
-      throw new SyncRealtimeError(
-        "stale_revision",
-        "expected base revision 0 but received 1",
-        { expectedBaseRevision: 0, receivedBaseRevision: 1 },
-      );
+      throw new SyncRealtimeError("stale_revision", "expected base revision 0 but received 1", {
+        expectedBaseRevision: 0,
+        receivedBaseRevision: 1,
+      });
     });
     const service = new SyncPushService({
       getApiBaseUrl: () => "http://127.0.0.1:8787",
@@ -154,11 +155,10 @@ describe("SyncPushService stale revisions", () => {
     });
 
     const session = createPushSession(async () => {
-      throw new SyncRealtimeError(
-        "stale_revision",
-        "expected base revision 3 but received 2",
-        { expectedBaseRevision: 3, receivedBaseRevision: 2 },
-      );
+      throw new SyncRealtimeError("stale_revision", "expected base revision 3 but received 2", {
+        expectedBaseRevision: 3,
+        receivedBaseRevision: 2,
+      });
     });
     const service = new SyncPushService({
       getApiBaseUrl: () => "http://127.0.0.1:8787",
@@ -259,11 +259,10 @@ describe("SyncPushService stale revisions", () => {
 
     const session = createPushSession(async (mutation) => {
       if (mutation.entryId === "entry-note") {
-        throw new SyncRealtimeError(
-          "stale_revision",
-          "expected base revision 3 but received 2",
-          { expectedBaseRevision: 3, receivedBaseRevision: 2 },
-        );
+        throw new SyncRealtimeError("stale_revision", "expected base revision 3 but received 2", {
+          expectedBaseRevision: 3,
+          receivedBaseRevision: 2,
+        });
       }
 
       return {

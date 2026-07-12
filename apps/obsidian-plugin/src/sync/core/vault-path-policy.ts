@@ -1,4 +1,4 @@
-import { shouldSyncPath, type SyncFileRules } from "./file-rules";
+import { type SyncFileRules, shouldSyncPath } from "./file-rules";
 import { classifySyncPath } from "./reserved-paths";
 import {
   isDeniedVaultConfigPath,
@@ -72,8 +72,7 @@ export function isForbiddenVaultPath(
   vaultConfigRules: Pick<VaultConfigSyncRules, "configDir">,
 ): boolean {
   return (
-    classifySyncPath(path, vaultConfigRules.configDir) ===
-      "reserved-never-sync" ||
+    classifySyncPath(path, vaultConfigRules.configDir) === "reserved-never-sync" ||
     isDeniedVaultConfigPath(path, vaultConfigRules.configDir) ||
     isProtectedDefaultConfigPath(path, vaultConfigRules.configDir)
   );

@@ -1,10 +1,7 @@
 import type { CommitMutationPayload } from "../remote/realtime-client";
 import { SyncRealtimeError } from "../remote/realtime-client";
 import type { PendingMutationRow } from "../store/store";
-import type {
-  PreparedPushMutation,
-  SkippedPushMutation,
-} from "./push-mutation-types";
+import type { PreparedPushMutation, SkippedPushMutation } from "./push-mutation-types";
 
 export function toCommitPayload(mutation: {
   mutationId: string;
@@ -66,14 +63,9 @@ function staleRevisionNumbers(
     return null;
   }
 
-  const expectedBaseRevision =
-    error.expectedBaseRevision ?? error.details?.expectedBaseRevision;
-  const receivedBaseRevision =
-    error.receivedBaseRevision ?? error.details?.receivedBaseRevision;
-  if (
-    typeof expectedBaseRevision !== "number" ||
-    typeof receivedBaseRevision !== "number"
-  ) {
+  const expectedBaseRevision = error.expectedBaseRevision ?? error.details?.expectedBaseRevision;
+  const receivedBaseRevision = error.receivedBaseRevision ?? error.details?.receivedBaseRevision;
+  if (typeof expectedBaseRevision !== "number" || typeof receivedBaseRevision !== "number") {
     return null;
   }
 

@@ -1,3 +1,4 @@
+import type { SyncedEntryMetadata } from "../core/content";
 import type {
   SyncBlobStore,
   SyncConnectionStore,
@@ -10,7 +11,6 @@ import type {
   SyncRemoteEntryStore,
   SyncStoreLifecycle,
 } from "./ports";
-import type { SyncedEntryMetadata } from "../core/content";
 
 export interface RemoteSyncEntryRow {
   entryId: string;

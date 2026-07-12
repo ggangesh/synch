@@ -88,7 +88,9 @@ describe("connect non-empty local vault confirmation modal", () => {
 
   it("resolves false when canceled and true when confirmed", async () => {
     const canceled = openConfirmConnectNonEmptyLocalVaultModal(new App());
-    await getButtonComponents().find((button) => button.text === "Cancel")?.click();
+    await getButtonComponents()
+      .find((button) => button.text === "Cancel")
+      ?.click();
     await expect(canceled).resolves.toBe(false);
 
     resetObsidianMocks();
@@ -125,9 +127,7 @@ describe("connect vault modal", () => {
       connect,
     );
 
-    const connectButton = getButtonComponents().find(
-      (button) => button.text === "Connect vault",
-    );
+    const connectButton = getButtonComponents().find((button) => button.text === "Connect vault");
     const [passwordInput] = getTextComponents();
 
     await passwordInput?.change("wrong password");
@@ -148,7 +148,9 @@ describe("connect vault modal", () => {
     await Promise.resolve();
     expect(resolved).toBe(false);
 
-    await getButtonComponents().find((button) => button.text === "Cancel")?.click();
+    await getButtonComponents()
+      .find((button) => button.text === "Cancel")
+      ?.click();
     await expect(modalResult).resolves.toBe(null);
   });
 
@@ -174,9 +176,7 @@ describe("connect vault modal", () => {
       connect,
     );
 
-    const connectButton = getButtonComponents().find(
-      (button) => button.text === "Connect vault",
-    );
+    const connectButton = getButtonComponents().find((button) => button.text === "Connect vault");
     const cancelButton = getButtonComponents().find((button) => button.text === "Cancel");
     const [passwordInput] = getTextComponents();
 

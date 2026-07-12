@@ -1,4 +1,4 @@
-import { TFile, type Plugin, type WorkspaceLeaf } from "obsidian";
+import { type Plugin, TFile, type WorkspaceLeaf } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
 import { DEFAULT_SYNC_FILE_RULES } from "../sync/core/file-rules";
@@ -239,15 +239,11 @@ function attachLeafToWorkspace(leaf: MockLeaf, workspace: WorkspaceMock): void {
   });
 }
 
-function createSyncControllerMock(
-  overrides: Partial<SyncController>,
-): SyncController {
+function createSyncControllerMock(overrides: Partial<SyncController>): SyncController {
   return overrides as SyncController;
 }
 
-function createEntryVersion(): Parameters<
-  SyncController["restoreEntryVersionForPath"]
->[1] {
+function createEntryVersion(): Parameters<SyncController["restoreEntryVersionForPath"]>[1] {
   return {
     versionId: "version-1",
     sourceRevision: 1,

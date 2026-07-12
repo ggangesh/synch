@@ -1,3 +1,4 @@
+import { remoteVaultUnavailableFromWebSocketClose } from "../../remote-vault/unavailable";
 import type { EntryStatePageCursor } from "./changes";
 import type {
   CommitMutationPayload,
@@ -10,7 +11,6 @@ import type {
   SyncRealtimeClientOptions,
 } from "./realtime-types";
 import { SyncRealtimeConnectionError, SyncRealtimeError } from "./realtime-types";
-import { remoteVaultUnavailableFromWebSocketClose } from "../../remote-vault/unavailable";
 
 type ClientMessage =
   | {
@@ -44,10 +44,10 @@ type ClientMessage =
       before: DeletedEntryPageCursor | null;
       limit: number;
     }
-  | {
+  | ({
       type: "restore_entry_version";
       requestId: string;
-    } & RestoreEntryVersionPayload
+    } & RestoreEntryVersionPayload)
   | {
       type: "restore_entry_versions";
       requestId: string;
@@ -198,9 +198,7 @@ export class SyncRealtimeSocketSession {
     this.socket.removeEventListener("error", this.handleError);
     this.socket.removeEventListener("close", this.handleClose);
     this.rejectPending(
-      new SyncRealtimeConnectionError(
-        "sync websocket closed before the request completed",
-      ),
+      new SyncRealtimeConnectionError("sync websocket closed before the request completed"),
     );
     try {
       this.socket.close();
@@ -272,9 +270,7 @@ export class SyncRealtimeSocketSession {
   };
 
   private readonly handleError = (): void => {
-    this.failConnection(
-      new SyncRealtimeConnectionError("sync websocket connection failed"),
-    );
+    this.failConnection(new SyncRealtimeConnectionError("sync websocket connection failed"));
   };
 
   private readonly handleClose = (event: CloseEvent): void => {
@@ -287,9 +283,7 @@ export class SyncRealtimeSocketSession {
     const sessionError = syncRealtimeErrorFromCloseEvent(event);
     this.rejectPending(
       sessionError ??
-        new SyncRealtimeConnectionError(
-          "sync websocket closed before the request completed",
-        ),
+        new SyncRealtimeConnectionError("sync websocket closed before the request completed"),
     );
     if (sessionError && !this.receivedSessionError) {
       this.callbacks.onError(sessionError);
@@ -369,10 +363,7 @@ export class SyncRealtimeSocketSession {
   }
 }
 
-export async function waitForOpen(
-  socket: WebSocket,
-  remoteVaultId: string,
-): Promise<void> {
+export async function waitForOpen(socket: WebSocket, remoteVaultId: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const onOpen = () => {
       cleanup();
@@ -402,11 +393,7 @@ export async function waitForOpen(
         return;
       }
 
-      reject(
-        new SyncRealtimeConnectionError(
-          "sync websocket closed before the session started",
-        ),
-      );
+      reject(new SyncRealtimeConnectionError("sync websocket closed before the session started"));
     };
 
     const cleanup = () => {

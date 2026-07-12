@@ -22,6 +22,7 @@
     "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.3",
     "@typescript/native-preview": "^7.0.0-dev.20260423.1",
     "typescript": "^5.9.3"
   }

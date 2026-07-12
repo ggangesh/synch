@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { type App, type Plugin, PluginSettingTab, Setting } from "obsidian";
 
 import { getDefaultApiBaseUrl } from "../config";
 import { t } from "../i18n";
@@ -80,9 +80,7 @@ export class SynchSettingTab extends PluginSettingTab {
     const authReadiness = this.controller.getAuthReadiness();
     const isDeviceLoginInProgress = this.controller.isDeviceLoginInProgress();
     const canChangeApiBaseUrl =
-      !hasAuthenticatedSession &&
-      !isDeviceLoginInProgress &&
-      !hasConnectedRemoteVault;
+      !hasAuthenticatedSession && !isDeviceLoginInProgress && !hasConnectedRemoteVault;
 
     void this.controller.ensurePluginUpdateCheck();
     renderSettingsHeading(containerEl, this.controller);
@@ -107,11 +105,8 @@ export class SynchSettingTab extends PluginSettingTab {
       new Setting(containerEl).setName(t("account")).setHeading();
     }
 
-    renderAuthenticationSetting(
-      containerEl,
-      this.controller,
-      isDeviceLoginInProgress,
-      () => this.refresh(),
+    renderAuthenticationSetting(containerEl, this.controller, isDeviceLoginInProgress, () =>
+      this.refresh(),
     );
 
     if (hasAuthenticatedSession && usesDefaultApiBaseUrl) {
@@ -124,8 +119,7 @@ export class SynchSettingTab extends PluginSettingTab {
         canChangeApiBaseUrl,
         hasConnectedRemoteVault,
         isDeviceLoginInProgress,
-        showSelfHostedServerUrl:
-          this.showSelfHostedServerUrl ?? !usesDefaultApiBaseUrl,
+        showSelfHostedServerUrl: this.showSelfHostedServerUrl ?? !usesDefaultApiBaseUrl,
         onShowSelfHostedServerUrlChange: (value) => {
           this.showSelfHostedServerUrl = value;
           this.refresh();
@@ -134,14 +128,9 @@ export class SynchSettingTab extends PluginSettingTab {
       return;
     }
 
-    renderRemoteVaultSettings(
-      this.app,
-      containerEl,
-      this.controller,
-      hasConnectedRemoteVault,
-      () => this.refresh(),
+    renderRemoteVaultSettings(this.app, containerEl, this.controller, hasConnectedRemoteVault, () =>
+      this.refresh(),
     );
     renderFileSyncSettings(this.app, containerEl, this.controller, () => this.refresh());
   }
-
 }

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createPasswordWrappedRemoteVaultKey,
-  unwrapRemoteVaultKeyWithPassword,
-} from "./crypto";
+import { createPasswordWrappedRemoteVaultKey, unwrapRemoteVaultKeyWithPassword } from "./crypto";
 
 describe("vault crypto", () => {
   it("round-trips a password-wrapped vault key", async () => {

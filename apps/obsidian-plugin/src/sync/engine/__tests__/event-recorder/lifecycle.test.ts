@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncEventRecorder } from "../../event-recorder";
 import {
   decryptPendingMetadata,
@@ -25,9 +27,7 @@ describe("SyncEventRecorder lifecycle", () => {
       : null;
 
     expect(createdEntry?.revision).toBe(0);
-    await expect(
-      decryptPendingMetadata(createdPending),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(createdPending)).resolves.toEqual({
       path: "Folder/file.md",
       hash: createdPending?.hash,
     });
@@ -38,23 +38,15 @@ describe("SyncEventRecorder lifecycle", () => {
     const modifiedPending = createdEntry
       ? await store.getDirtyEntryMutation(createdEntry.entryId)
       : null;
-    await expect(
-      decryptPendingMetadata(modifiedPending),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(modifiedPending)).resolves.toEqual({
       path: "Folder/file.md",
       hash: modifiedPending?.hash,
     });
     expect(modifiedPending?.blobId).toBe((await store.getEntryByPath("Folder/file.md"))?.blobId);
-    expect(modifiedPending?.hash).toBe(
-      (await store.getEntryByPath("Folder/file.md"))?.hash,
-    );
+    expect(modifiedPending?.hash).toBe((await store.getEntryByPath("Folder/file.md"))?.hash);
     expect((await store.listDirtyEntries()).length).toBe(1);
 
-    await recorder.recordRename(
-      "Folder/file.md",
-      "Folder/renamed.md",
-      encodeUtf8("draft v2"),
-    );
+    await recorder.recordRename("Folder/file.md", "Folder/renamed.md", encodeUtf8("draft v2"));
     expect(await store.getEntryByPath("Folder/file.md")).toBeNull();
     expect(await store.getEntryByPath("Folder/renamed.md")).toEqual({
       entryId: createdEntry?.entryId,
@@ -71,16 +63,12 @@ describe("SyncEventRecorder lifecycle", () => {
     const renamedPending = createdEntry
       ? await store.getDirtyEntryMutation(createdEntry.entryId)
       : null;
-    await expect(
-      decryptPendingMetadata(renamedPending),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(renamedPending)).resolves.toEqual({
       path: "Folder/renamed.md",
       hash: renamedPending?.hash,
     });
     expect(renamedPending?.blobId).toBe((await store.getEntryByPath("Folder/renamed.md"))?.blobId);
-    expect(renamedPending?.hash).toBe(
-      (await store.getEntryByPath("Folder/renamed.md"))?.hash,
-    );
+    expect(renamedPending?.hash).toBe((await store.getEntryByPath("Folder/renamed.md"))?.hash);
 
     await recorder.recordDelete("Folder/renamed.md");
     expect(await store.getEntryByPath("Folder/renamed.md")).toBeNull();

@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
-  SyncRealtimeConnectionError,
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
+import {
   type SyncRealtimeCallbacks,
+  SyncRealtimeConnectionError,
 } from "../../../remote/realtime-client";
 import { SyncAutoLoop } from "../../auto-sync";
 import {
@@ -246,9 +249,7 @@ describe("SyncAutoLoop retry flow", () => {
 
     await autoLoop.start();
 
-    callbacks[0]?.onError(
-      new SyncRealtimeConnectionError("sync websocket connection failed"),
-    );
+    callbacks[0]?.onError(new SyncRealtimeConnectionError("sync websocket connection failed"));
     callbacks[0]?.onClose({
       code: 1006,
       reason: "connection closed",
@@ -271,9 +272,7 @@ describe("SyncAutoLoop retry flow", () => {
     const pushPendingMutations = vi
       .fn()
       .mockRejectedValueOnce(
-        new SyncRealtimeConnectionError(
-          "sync websocket closed before the request completed",
-        ),
+        new SyncRealtimeConnectionError("sync websocket closed before the request completed"),
       )
       .mockResolvedValue(createPushResult());
     const onError = vi.fn();
@@ -398,10 +397,7 @@ describe("SyncAutoLoop retry flow", () => {
         shouldPullAfterPush: true,
       }),
     );
-    const pullOnce = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("offline"))
-      .mockResolvedValue({});
+    const pullOnce = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue({});
     const autoLoop = new SyncAutoLoop({
       getApiBaseUrl: () => "http://127.0.0.1:8787",
       getSyncToken: async () => createToken(),

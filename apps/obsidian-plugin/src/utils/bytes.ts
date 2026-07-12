@@ -7,9 +7,7 @@ export function randomBytes(length: number): Uint8Array {
 export function encodeBase64(bytes: Uint8Array): string {
   const chunks: string[] = [];
   for (let index = 0; index < bytes.length; index += BASE64_CHUNK_SIZE) {
-    chunks.push(
-      String.fromCharCode(...bytes.subarray(index, index + BASE64_CHUNK_SIZE)),
-    );
+    chunks.push(String.fromCharCode(...bytes.subarray(index, index + BASE64_CHUNK_SIZE)));
   }
 
   return btoa(chunks.join(""));

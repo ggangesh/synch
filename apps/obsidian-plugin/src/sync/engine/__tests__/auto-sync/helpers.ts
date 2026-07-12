@@ -92,15 +92,15 @@ export function createRealtimeClient(
         },
         async restoreEntryVersion() {
           throw new Error("auto-sync tests should not restore entry versions");
-	        },
+        },
         async restoreEntryVersions() {
           throw new Error("auto-sync tests should not restore entry versions");
         },
         async purgeDeletedEntries() {
           throw new Error("auto-sync tests should not purge deleted entries");
         },
-	        async detachLocalVault() {},
-	        async commitMutation(_mutation: CommitMutationPayload) {
+        async detachLocalVault() {},
+        async commitMutation(_mutation: CommitMutationPayload) {
           return {
             cursor: 1,
             entryId: "entry-1",

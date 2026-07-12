@@ -11,7 +11,7 @@
 				color: #e4e4e7;
 			}
 			[hidden] {
-				display: none !important;
+				display: none;
 			}
 		</style>
 	</head>
@@ -162,7 +162,7 @@
 			};
 			const params = new URLSearchParams(window.location.search);
 			const locale = getLocale();
-			let activeUserCode = normalizeUserCode(params.get("user_code") ?? "");
+			const activeUserCode = normalizeUserCode(params.get("user_code") ?? "");
 
 			const approvalPanel = document.querySelector("#approval-panel");
 			const approveButton = document.querySelector("#approve-button");

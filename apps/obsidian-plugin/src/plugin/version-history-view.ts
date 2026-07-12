@@ -1,13 +1,13 @@
 import { ItemView, Notice, Setting, type WorkspaceLeaf } from "obsidian";
 
 import { t } from "../i18n";
+import { VersionPreviewModal } from "./version-preview-modal";
 import type {
   SynchEntryVersion,
   SynchEntryVersionCursor,
   SynchEntryVersionsPage,
   SynchVersionPreview,
 } from "./view-models";
-import { VersionPreviewModal } from "./version-preview-modal";
 
 export const SYNCH_VERSION_HISTORY_VIEW_TYPE = "synch-version-history";
 const HISTORY_PAGE_SIZE = 25;
@@ -73,10 +73,7 @@ export class SynchVersionHistoryView extends ItemView {
     this.render();
 
     try {
-      const state = await this.controller.listActiveFileVersions(
-        before,
-        HISTORY_PAGE_SIZE,
-      );
+      const state = await this.controller.listActiveFileVersions(before, HISTORY_PAGE_SIZE);
       if (requestId !== this.requestId) {
         return;
       }
@@ -233,9 +230,7 @@ export class SynchVersionHistoryView extends ItemView {
 
   private async restoreVersion(version: SynchEntryVersion): Promise<void> {
     if (
-      !confirm(
-        t("version.restoreConfirm", { capturedAt: formatCapturedAt(version.capturedAt) }),
-      )
+      !confirm(t("version.restoreConfirm", { capturedAt: formatCapturedAt(version.capturedAt) }))
     ) {
       return;
     }

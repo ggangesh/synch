@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-
-import { hashBytes } from "../../../core/content";
-import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
-  arrangePendingUpsertWithCachedBase,
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
+import { SyncPullService } from "../../pull-service";
+import {
   createCommit,
   createEventGate,
   createPullClient,
@@ -16,8 +16,8 @@ import {
   encryptTestBlob,
   hashText,
   ignoreProgress,
-  TEST_VAULT_KEY,
   type PullConflictSummary,
+  TEST_VAULT_KEY,
 } from "./helpers";
 
 const conflictTimestamp = () => new Date(2026, 3, 22, 10, 11, 12).getTime();
@@ -213,14 +213,8 @@ describe("SyncPullService path conflicts", () => {
     });
     const client = createPullClient({
       blobs: {
-        "blob-remote-a": await encryptTestBlob(
-          "blob-remote-a",
-          new TextEncoder().encode(body),
-        ),
-        "blob-remote-b": await encryptTestBlob(
-          "blob-remote-b",
-          new TextEncoder().encode(body),
-        ),
+        "blob-remote-a": await encryptTestBlob("blob-remote-a", new TextEncoder().encode(body)),
+        "blob-remote-b": await encryptTestBlob("blob-remote-b", new TextEncoder().encode(body)),
       },
     });
 
@@ -364,9 +358,7 @@ describe("SyncPullService path conflicts", () => {
       conflictsCreated: 1,
     });
     expect(adapter.text("Folder/shared.md")).toBe("remote body");
-    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe(
-      "local body",
-    );
+    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe("local body");
     expect(await store.getEntryById("entry-local")).toBeNull();
     expect(await store.getEntryById("entry-remote")).toMatchObject({
       entryId: "entry-remote",
@@ -464,9 +456,7 @@ describe("SyncPullService path conflicts", () => {
       conflictsCreated: 1,
     });
     expect(adapter.text("Folder/shared.md")).toBe("first body");
-    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe(
-      "second body",
-    );
+    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe("second body");
     expect((await store.getEntryById("entry-a"))?.path).toBe("Folder/shared.md");
     expect((await store.getEntryById("entry-b"))?.path).toBe(
       "Folder/shared.sync-conflict-20260422-101112.md",
@@ -577,9 +567,7 @@ describe("SyncPullService path conflicts", () => {
       conflictsCreated: 1,
     });
     expect(adapter.text("Folder/shared.md")).toBe("local pending body");
-    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe(
-      "remote body",
-    );
+    expect(adapter.text("Folder/shared.sync-conflict-20260422-101112.md")).toBe("remote body");
     expect(await store.listDirtyEntries()).toMatchObject([
       {
         mutationId: "mutation-a",

@@ -5,12 +5,7 @@ import {
   readStoredSyncConnection,
   writeStoredSyncConnection,
 } from "./connection";
-import type {
-  SyncConnection,
-  PendingMutationRow,
-  SyncEntryRow,
-  SyncStore,
-} from "./store";
+import type { PendingMutationRow, SyncConnection, SyncEntryRow, SyncStore } from "./store";
 
 describe("local vault id storage", () => {
   it("creates and persists a local vault id once", async () => {

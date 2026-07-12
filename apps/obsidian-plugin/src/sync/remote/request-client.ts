@@ -1,8 +1,8 @@
 import {
   defaultHttpClient,
-  stripTrailingSlash,
   type HttpClient,
   type HttpResponseLike,
+  stripTrailingSlash,
 } from "../../http/request";
 import type { SyncTokenResponse } from "./client";
 

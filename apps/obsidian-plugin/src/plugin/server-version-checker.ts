@@ -1,8 +1,4 @@
-import {
-  defaultHttpClient,
-  stripTrailingSlash,
-  type HttpClient,
-} from "../http/request";
+import { defaultHttpClient, type HttpClient, stripTrailingSlash } from "../http/request";
 
 export const SUPPORTED_SYNCH_API_MAJOR = 1;
 
@@ -47,10 +43,7 @@ function parseServerPluginVersionStatus(value: unknown): ServerPluginVersionStat
   }
 
   const record = value as Record<string, unknown>;
-  if (
-    typeof record.status !== "string" ||
-    typeof record.minVersion !== "string"
-  ) {
+  if (typeof record.status !== "string" || typeof record.minVersion !== "string") {
     return null;
   }
 

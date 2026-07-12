@@ -1,31 +1,25 @@
-import { SyncBlobClient } from "../remote/blob-client";
 import type { ConflictFileWriter } from "../core/conflict-file";
-import {
-  createSyncCryptoContext,
-  type SyncCryptoContext,
-} from "../core/crypto";
+import { createSyncCryptoContext, type SyncCryptoContext } from "../core/crypto";
+import type { SyncBlobClient } from "../remote/blob-client";
 import type { SyncTokenResponse } from "../remote/client";
-import type {
-  CommitMutationBatchResult,
-  SyncRealtimeSession,
-} from "../remote/realtime-client";
-import type {
-  AcceptedPushMutationRow,
-  PendingMutationRow,
-  SyncProgressCounts,
-} from "../store/store";
+import type { CommitMutationBatchResult, SyncRealtimeSession } from "../remote/realtime-client";
 import type {
   SyncCursorStore,
   SyncEntryStore,
   SyncMutationStore,
   SyncStoreLifecycle,
 } from "../store/ports";
+import type {
+  AcceptedPushMutationRow,
+  PendingMutationRow,
+  SyncProgressCounts,
+} from "../store/store";
 import {
   type LocalFileReader,
-  PushMutationCommitter,
-  type PushConflictEvent,
-  type PushMutationStore,
   type PreparedPushMutation,
+  type PushConflictEvent,
+  PushMutationCommitter,
+  type PushMutationStore,
 } from "./push-mutation-committer";
 
 const DEFAULT_PUSH_BATCH = 100;
@@ -72,9 +66,7 @@ export interface PushPendingMutationsResult {
 export class SyncPushService {
   constructor(private readonly deps: SyncPushServiceDeps) {}
 
-  async pushPendingMutations(
-    session: SyncRealtimeSession,
-  ): Promise<PushPendingMutationsResult> {
+  async pushPendingMutations(session: SyncRealtimeSession): Promise<PushPendingMutationsResult> {
     const store = this.deps.getSyncStore();
     if (!store) {
       throw new Error("Sync store is not initialized.");
@@ -99,16 +91,11 @@ export class SyncPushService {
 
     const remoteVaultKey = this.deps.getRemoteVaultKey();
     const syncCryptoContext = createSyncCryptoContext(remoteVaultKey);
-    const mutationCommitter = this.createMutationCommitter(
-      remoteVaultKey,
-      syncCryptoContext,
-    );
+    const mutationCommitter = this.createMutationCommitter(remoteVaultKey, syncCryptoContext);
     try {
       while (processedMutations < DEFAULT_PUSH_DRAIN_LIMIT) {
         const remainingBudget = DEFAULT_PUSH_DRAIN_LIMIT - processedMutations;
-        const pending = await store.listDirtyEntries(
-          Math.min(DEFAULT_PUSH_BATCH, remainingBudget),
-        );
+        const pending = await store.listDirtyEntries(Math.min(DEFAULT_PUSH_BATCH, remainingBudget));
         if (pending.length === 0) {
           hasMore = false;
           break;
@@ -177,11 +164,7 @@ export class SyncPushService {
 
           if (batchResult.status === "accepted") {
             acceptedPushMutations.push(
-              await mutationCommitter.buildAcceptedPushMutation(
-                mutation,
-                prepared,
-                batchResult,
-              ),
+              await mutationCommitter.buildAcceptedPushMutation(mutation, prepared, batchResult),
             );
             cursor = Math.max(cursor, batchResult.cursor);
             acceptedCursors.push(batchResult.cursor);
@@ -217,7 +200,6 @@ export class SyncPushService {
             continue;
           }
           if (result.status === "conflict") {
-            continue;
           }
         }
         await this.reportProgress(store);
@@ -227,10 +209,7 @@ export class SyncPushService {
       }
 
       hasMore = (await store.listDirtyEntries(1)).length > 0;
-      checkpointCursor = getContiguousAcceptedCursor(
-        checkpointCursor,
-        acceptedCursors,
-      );
+      checkpointCursor = getContiguousAcceptedCursor(checkpointCursor, acceptedCursors);
       if (checkpointCursor > startingCursor) {
         await store.setCursor(checkpointCursor);
       }
@@ -343,10 +322,7 @@ export class SyncPushService {
   }
 }
 
-function getContiguousAcceptedCursor(
-  currentCursor: number,
-  acceptedCursors: number[],
-): number {
+function getContiguousAcceptedCursor(currentCursor: number, acceptedCursors: number[]): number {
   if (acceptedCursors.length === 0) {
     return currentCursor;
   }
@@ -368,10 +344,7 @@ function shouldUnblockFileSizeMutation(
   }
 
   const encryptedSizeBytes = mutation.blockedEncryptedSizeBytes;
-  return (
-    typeof encryptedSizeBytes === "number" &&
-    encryptedSizeBytes <= maxFileSizeBytes
-  );
+  return typeof encryptedSizeBytes === "number" && encryptedSizeBytes <= maxFileSizeBytes;
 }
 
 async function mapWithConcurrency<T, U>(

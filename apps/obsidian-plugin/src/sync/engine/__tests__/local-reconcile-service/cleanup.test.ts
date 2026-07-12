@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
-import { SyncLocalReconcileService } from "../../local-reconcile-service";
 import {
-  encryptTestMetadata,
-  TEST_VAULT_KEY,
-} from "./helpers";
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
+import { SyncLocalReconcileService } from "../../local-reconcile-service";
+import { encryptTestMetadata, TEST_VAULT_KEY } from "./helpers";
 
 describe("SyncLocalReconcileService cleanup", () => {
   it("drops unsynced files that disappeared before they were ever pushed", async () => {

@@ -45,13 +45,15 @@ describe("BillingClient", () => {
   });
 
   it("rejects invalid billing status responses", () => {
-    expect(() => parseBillingStatus({
-      planId: "starter",
-      billingInterval: "weekly",
-      active: true,
-      status: "active",
-      cancelAtPeriodEnd: false,
-      periodEnd: null,
-    })).toThrow("invalid billing status response");
+    expect(() =>
+      parseBillingStatus({
+        planId: "starter",
+        billingInterval: "weekly",
+        active: true,
+        status: "active",
+        cancelAtPeriodEnd: false,
+        periodEnd: null,
+      }),
+    ).toThrow("invalid billing status response");
   });
 });

@@ -1,12 +1,8 @@
-import { setIcon, type Plugin } from "obsidian";
+import { type Plugin, setIcon } from "obsidian";
 
 import { t } from "../i18n";
 import { isStorageWarningStatus } from "../utils/storage-warning";
-import {
-  getStatusBarStateClass,
-  openSynchSettings,
-  type SynchStatusBarState,
-} from "./status-bar";
+import { getStatusBarStateClass, openSynchSettings, type SynchStatusBarState } from "./status-bar";
 
 const MOBILE_STATUS_INDICATOR_STATE_CLASSES = [
   "synch-status-attention-needed",
@@ -72,14 +68,11 @@ export class SynchMobileStatusIndicator {
         ? t("status.storageAlmostFull")
         : state === "update_required"
           ? t("status.pluginUpdateRequired")
-        : t("status.attention"),
+          : t("status.attention"),
     );
     this.indicator.setAttribute("data-synch-sync-state", state);
     this.indicator.setAttribute("data-synch-sync-percent", String(this.state.getSyncPercent()));
-    this.indicator.setAttribute(
-      "data-synch-storage-warning",
-      hasStorageWarning ? "true" : "false",
-    );
+    this.indicator.setAttribute("data-synch-storage-warning", hasStorageWarning ? "true" : "false");
     if (this.icon) {
       setIcon(this.icon, "triangle-alert");
     }

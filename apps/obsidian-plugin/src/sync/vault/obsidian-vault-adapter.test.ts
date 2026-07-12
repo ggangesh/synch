@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-
+import { createTestPlugin } from "../../test-support/test-plugin";
 import { DEFAULT_SYNC_FILE_RULES } from "../core/file-rules";
 import { DEFAULT_VAULT_CONFIG_SYNC_RULES } from "../core/vault-config-rules";
-import { createTestPlugin } from "../../test-support/test-plugin";
 import { ObsidianSyncVaultAdapter } from "./obsidian-vault-adapter";
 
 describe("ObsidianSyncVaultAdapter", () => {
@@ -31,9 +30,7 @@ describe("ObsidianSyncVaultAdapter", () => {
     const files = await adapter.listFiles();
 
     expect(files.map((file) => file.path)).toEqual([".assets/nested/file.md"]);
-    await expect(files[0]?.readBytes()).resolves.toEqual(
-      new TextEncoder().encode("hidden"),
-    );
+    await expect(files[0]?.readBytes()).resolves.toEqual(new TextEncoder().encode("hidden"));
   });
 
   describe("sanitizePath", () => {
@@ -46,9 +43,7 @@ describe("ObsidianSyncVaultAdapter", () => {
       );
 
       await adapter.writeBinary("file*.md", new Uint8Array([1, 2, 3]));
-      expect(
-        await plugin.app.vault.adapter.exists("file_.md"),
-      ).toBe(true);
+      expect(await plugin.app.vault.adapter.exists("file_.md")).toBe(true);
     });
 
     it("sanitizes multiple invalid characters in a path", async () => {
@@ -84,10 +79,7 @@ describe("ObsidianSyncVaultAdapter", () => {
         () => DEFAULT_VAULT_CONFIG_SYNC_RULES,
       );
 
-      await plugin.app.vault.adapter.writeBinary(
-        "old.md",
-        new TextEncoder().encode("data").buffer,
-      );
+      await plugin.app.vault.adapter.writeBinary("old.md", new TextEncoder().encode("data").buffer);
       await adapter.rename("old.md", "new*.md");
       expect(await plugin.app.vault.adapter.exists("new_.md")).toBe(true);
       expect(await plugin.app.vault.adapter.exists("old.md")).toBe(false);
@@ -102,9 +94,7 @@ describe("ObsidianSyncVaultAdapter", () => {
       );
 
       await adapter.writeBinary("normal-file.md", new Uint8Array([1, 2, 3]));
-      expect(
-        await plugin.app.vault.adapter.exists("normal-file.md"),
-      ).toBe(true);
+      expect(await plugin.app.vault.adapter.exists("normal-file.md")).toBe(true);
     });
 
     it("sanitizes paths in remove method", async () => {
@@ -120,9 +110,7 @@ describe("ObsidianSyncVaultAdapter", () => {
         new TextEncoder().encode("data").buffer,
       );
       await adapter.remove("file*.md");
-      expect(
-        await plugin.app.vault.adapter.exists("file_.md"),
-      ).toBe(false);
+      expect(await plugin.app.vault.adapter.exists("file_.md")).toBe(false);
     });
   });
 

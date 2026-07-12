@@ -14,9 +14,7 @@ export interface UserVisibleSyncProgress {
   totalEntries: number;
 }
 
-export function getUserVisibleSyncPercent(
-  progress: UserVisibleSyncProgress | null,
-): number | null {
+export function getUserVisibleSyncPercent(progress: UserVisibleSyncProgress | null): number | null {
   if (!progress || progress.totalEntries <= 0) {
     return null;
   }

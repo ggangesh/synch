@@ -1,9 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-
-import type { SyncTokenResponse } from "../remote/client";
+import { createTestPlugin } from "../../test-support/test-plugin";
 import { DEFAULT_SYNC_FILE_RULES } from "../core/file-rules";
 import { DEFAULT_VAULT_CONFIG_SYNC_RULES } from "../core/vault-config-rules";
-import { createTestPlugin } from "../../test-support/test-plugin";
+import type { SyncTokenResponse } from "../remote/client";
 import { SyncController } from "./controller";
 import { SyncEngine } from "./engine";
 
@@ -21,9 +20,7 @@ describe("SyncController", () => {
     const hasPendingMutations = vi
       .spyOn(SyncEngine.prototype, "hasPendingMutations")
       .mockResolvedValue(true);
-    const startAutoSync = vi
-      .spyOn(SyncEngine.prototype, "startAutoSync")
-      .mockResolvedValue(true);
+    const startAutoSync = vi.spyOn(SyncEngine.prototype, "startAutoSync").mockResolvedValue(true);
     const notifyLocalChange = vi
       .spyOn(SyncEngine.prototype, "notifyLocalChange")
       .mockImplementation(() => {});
@@ -81,9 +78,7 @@ describe("SyncController", () => {
 
   it("starts auto sync on resume when the loop is not active", async () => {
     vi.spyOn(SyncEngine.prototype, "hasStore").mockReturnValue(true);
-    const startAutoSync = vi
-      .spyOn(SyncEngine.prototype, "startAutoSync")
-      .mockResolvedValue(true);
+    const startAutoSync = vi.spyOn(SyncEngine.prototype, "startAutoSync").mockResolvedValue(true);
     const resumeAutoSyncConnection = vi
       .spyOn(SyncEngine.prototype, "resumeAutoSyncConnection")
       .mockResolvedValue();

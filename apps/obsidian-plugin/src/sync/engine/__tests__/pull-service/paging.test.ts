@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { hashBytes } from "../../../core/content";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   createCommit,
   createEventGate,
@@ -395,11 +397,7 @@ describe("SyncPullService paging", () => {
 
     expect(result.filesWritten).toBe(12);
     expect(maxActiveDownloads).toBe(3);
-    expect(downloadOrder.slice(0, 3)).toEqual([
-      "blob-1",
-      "blob-2",
-      "blob-3",
-    ]);
+    expect(downloadOrder.slice(0, 3)).toEqual(["blob-1", "blob-2", "blob-3"]);
     expect(blobIds.map((_, index) => adapter.text(`Folder/note-${index + 1}.md`))).toEqual(
       blobIds.map((blobId) => bodies[blobId]),
     );
@@ -490,9 +488,7 @@ describe("SyncPullService paging", () => {
     expect(events.indexOf("download:blob-6")).toBeLessThan(
       events.indexOf("write:Folder/note-1.md"),
     );
-    expect(blobIds.map((_, index) => adapter.text(`Folder/note-${index + 1}.md`))).toEqual(
-      bodies,
-    );
+    expect(blobIds.map((_, index) => adapter.text(`Folder/note-${index + 1}.md`))).toEqual(bodies);
 
     await store.close();
   });

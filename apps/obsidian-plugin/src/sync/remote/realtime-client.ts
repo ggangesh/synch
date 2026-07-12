@@ -1,5 +1,5 @@
 import type { SyncTokenResponse } from "./client";
-import { SyncRealtimeApiSession, applySessionStorageLimit } from "./realtime-api-session";
+import { applySessionStorageLimit, SyncRealtimeApiSession } from "./realtime-api-session";
 import { SyncRealtimeSocketSession, waitForOpen } from "./realtime-socket-session";
 import type {
   RealtimeSessionState,
@@ -10,29 +10,26 @@ import type {
   WebSocketFactory,
 } from "./realtime-types";
 import { toWebSocketUrl } from "./realtime-url";
-import {
-  SYNC_WEBSOCKET_AUTH_PROTOCOL_PREFIX,
-  SYNC_WEBSOCKET_PROTOCOL,
-} from "./socket-protocol";
+import { SYNC_WEBSOCKET_AUTH_PROTOCOL_PREFIX, SYNC_WEBSOCKET_PROTOCOL } from "./socket-protocol";
 
 export type {
   CommitAcceptedResult,
   CommitMutationBatchResult,
   CommitMutationPayload,
   CommitMutationsResult,
-  DeletedEntriesResponse,
   DeletedEntriesPurgedResponse,
+  DeletedEntriesResponse,
   DeletedEntry,
   DeletedEntryPageCursor,
   EntryVersion,
   EntryVersionPageCursor,
   EntryVersionRestoredResponse,
-  EntryVersionsRestoredResponse,
   EntryVersionsResponse,
-  RestoreEntryVersionBatchResult,
-  RestoreEntryVersionPayload,
+  EntryVersionsRestoredResponse,
   PurgeDeletedEntryBatchResult,
   PurgeDeletedEntryPayload,
+  RestoreEntryVersionBatchResult,
+  RestoreEntryVersionPayload,
   SyncPolicy,
   SyncRealtimeCallbacks,
   SyncRealtimeClientOptions,
@@ -68,10 +65,10 @@ export class SyncRealtimeClient {
     lastKnownCursor: number,
     callbacks: SyncRealtimeCallbacks,
   ): Promise<SyncRealtimeSession> {
-    const socket = this.webSocketFactory.create(
-      toWebSocketUrl(apiBaseUrl, token.vaultId),
-      [SYNC_WEBSOCKET_PROTOCOL, `${SYNC_WEBSOCKET_AUTH_PROTOCOL_PREFIX}${token.token}`],
-    );
+    const socket = this.webSocketFactory.create(toWebSocketUrl(apiBaseUrl, token.vaultId), [
+      SYNC_WEBSOCKET_PROTOCOL,
+      `${SYNC_WEBSOCKET_AUTH_PROTOCOL_PREFIX}${token.token}`,
+    ]);
 
     await waitForOpen(socket, token.vaultId);
     const state: RealtimeSessionState = {
@@ -90,10 +87,7 @@ export class SyncRealtimeClient {
       {
         ...callbacks,
         onStorageStatusUpdated(status) {
-          const nextStatus = applySessionStorageLimit(
-            status,
-            state.policy.storageLimitBytes,
-          );
+          const nextStatus = applySessionStorageLimit(status, state.policy.storageLimitBytes);
           state.storageStatus = nextStatus;
           callbacks.onStorageStatusUpdated(nextStatus);
         },

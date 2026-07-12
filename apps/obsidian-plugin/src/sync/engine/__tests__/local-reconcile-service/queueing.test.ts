@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { encodeUtf8, hashBytes } from "../../../core/content";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import { SyncEventRecorder } from "../../event-recorder";
 import { SyncLocalReconcileService } from "../../local-reconcile-service";
 import {
@@ -31,9 +33,7 @@ describe("SyncLocalReconcileService queueing", () => {
       shouldSyncPath: () => true,
       scanner: {
         async listFiles() {
-          return [
-            localFile("Folder/new.md", encodeUtf8("new body")),
-          ];
+          return [localFile("Folder/new.md", encodeUtf8("new body"))];
         },
       },
     });
@@ -50,18 +50,14 @@ describe("SyncLocalReconcileService queueing", () => {
     expect(pending).toHaveLength(2);
     expect(pending.map((item) => item.op).sort()).toEqual(["delete", "upsert"]);
     const upsertMutation = pending.find((item) => item.op === "upsert");
-    await expect(
-      decryptPendingMetadata(upsertMutation),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(upsertMutation)).resolves.toEqual({
       path: "Folder/new.md",
       hash: await hashBytes(encodeUtf8("new body")),
     });
     expect(upsertMutation?.blobId).toEqual(expect.any(String));
     expect(upsertMutation?.hash).toBe(await hashBytes(encodeUtf8("new body")));
     const deleteMutation = pending.find((item) => item.op === "delete");
-    await expect(
-      decryptPendingMetadata(deleteMutation),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(deleteMutation)).resolves.toEqual({
       path: "Folder/deleted.md",
       hash: null,
     });
@@ -103,9 +99,7 @@ describe("SyncLocalReconcileService queueing", () => {
       shouldSyncPath: () => true,
       scanner: {
         async listFiles() {
-          return [
-            localFile("New/name.md", encodeUtf8("same body")),
-          ];
+          return [localFile("New/name.md", encodeUtf8("same body"))];
         },
       },
     });
@@ -129,9 +123,7 @@ describe("SyncLocalReconcileService queueing", () => {
       encryptedMetadata: expect.any(String),
       createdAt: expect.any(Number),
     });
-    await expect(
-      decryptPendingMetadata(pending[0]),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(pending[0])).resolves.toEqual({
       path: "New/name.md",
       hash,
     });
@@ -174,10 +166,7 @@ describe("SyncLocalReconcileService queueing", () => {
       shouldSyncPath: () => true,
       scanner: {
         async listFiles() {
-          return [
-            localFile(oldPath, newBytes),
-            localFile(nextPath, renamedBytes),
-          ];
+          return [localFile(oldPath, newBytes), localFile(nextPath, renamedBytes)];
         },
       },
     });
@@ -241,9 +230,7 @@ describe("SyncLocalReconcileService queueing", () => {
       shouldSyncPath: () => true,
       scanner: {
         async listFiles() {
-          return [
-            localFile("Assets/new.png", imageBytes),
-          ];
+          return [localFile("Assets/new.png", imageBytes)];
         },
       },
     });
@@ -267,9 +254,7 @@ describe("SyncLocalReconcileService queueing", () => {
       encryptedMetadata: expect.any(String),
       createdAt: expect.any(Number),
     });
-    await expect(
-      decryptPendingMetadata(pending[0]),
-    ).resolves.toEqual({
+    await expect(decryptPendingMetadata(pending[0])).resolves.toEqual({
       path: "Assets/new.png",
       hash: imageHash,
     });
@@ -316,9 +301,7 @@ describe("SyncLocalReconcileService queueing", () => {
       shouldSyncPath: () => true,
       scanner: {
         async listFiles() {
-          return [
-            localFile("Notes/synced.md", bytes),
-          ];
+          return [localFile("Notes/synced.md", bytes)];
         },
       },
     });
@@ -436,9 +419,7 @@ describe("SyncLocalReconcileService queueing", () => {
     const observedStore = new Proxy(store, {
       get(target, property, receiver) {
         if (property === "applyReconcileEntryUpdates") {
-          return async (
-            updates: Parameters<typeof store.applyReconcileEntryUpdates>[0],
-          ) => {
+          return async (updates: Parameters<typeof store.applyReconcileEntryUpdates>[0]) => {
             appliedPaths.push(
               ...updates
                 .filter((update) => update.local)
@@ -498,11 +479,7 @@ describe("SyncLocalReconcileService queueing", () => {
       filesQueuedForUpsert: 3,
       filesQueuedForDelete: 0,
     });
-    expect(appliedPaths).toEqual([
-      "Notes/file-0.md",
-      "Notes/file-1.md",
-      "Notes/file-2.md",
-    ]);
+    expect(appliedPaths).toEqual(["Notes/file-0.md", "Notes/file-1.md", "Notes/file-2.md"]);
 
     const pending = await store.listDirtyEntries();
     const metadata = await Promise.all(pending.map(decryptPendingMetadata));

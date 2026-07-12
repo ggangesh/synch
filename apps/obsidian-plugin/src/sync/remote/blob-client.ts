@@ -1,8 +1,8 @@
 import {
   defaultHttpClient,
   extractErrorMessage,
-  stripTrailingSlash,
   type HttpClient,
+  stripTrailingSlash,
 } from "../../http/request";
 import type { SyncAuthorizedRequestClient } from "./request-client";
 
@@ -21,8 +21,7 @@ export class SyncBlobClient {
   ): Promise<void> {
     if (this.requestClient) {
       const { response } = await this.requestClient.request({
-        path: () =>
-          `/v1/vaults/${encodeURIComponent(vaultId)}/blobs/${encodeURIComponent(blobId)}`,
+        path: () => `/v1/vaults/${encodeURIComponent(vaultId)}/blobs/${encodeURIComponent(blobId)}`,
         method: "PUT",
         body: toArrayBuffer(bytes),
         headers: {

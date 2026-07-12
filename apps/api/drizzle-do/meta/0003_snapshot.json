@@ -54,10 +54,7 @@
       "indexes": {
         "idx_blobs_state_delete_after": {
           "name": "idx_blobs_state_delete_after",
-          "columns": [
-            "state",
-            "delete_after"
-          ],
+          "columns": ["state", "delete_after"],
           "isUnique": false
         }
       },
@@ -101,9 +98,7 @@
       "indexes": {
         "idx_commits_mutation_id": {
           "name": "idx_commits_mutation_id",
-          "columns": [
-            "mutation_id"
-          ],
+          "columns": ["mutation_id"],
           "isUnique": true
         }
       },
@@ -303,17 +298,12 @@
       "indexes": {
         "idx_entries_updated_seq_entry_id": {
           "name": "idx_entries_updated_seq_entry_id",
-          "columns": [
-            "updated_seq",
-            "entry_id"
-          ],
+          "columns": ["updated_seq", "entry_id"],
           "isUnique": false
         },
         "idx_entries_blob_id": {
           "name": "idx_entries_blob_id",
-          "columns": [
-            "blob_id"
-          ],
+          "columns": ["blob_id"],
           "isUnique": false
         }
       },
@@ -413,35 +403,22 @@
       "indexes": {
         "idx_entry_versions_entry_captured_at": {
           "name": "idx_entry_versions_entry_captured_at",
-          "columns": [
-            "entry_id",
-            "captured_at",
-            "version_id"
-          ],
+          "columns": ["entry_id", "captured_at", "version_id"],
           "isUnique": false
         },
         "idx_entry_versions_auto_bucket": {
           "name": "idx_entry_versions_auto_bucket",
-          "columns": [
-            "entry_id",
-            "reason",
-            "bucket_start_ms"
-          ],
+          "columns": ["entry_id", "reason", "bucket_start_ms"],
           "isUnique": true
         },
         "idx_entry_versions_expires_at": {
           "name": "idx_entry_versions_expires_at",
-          "columns": [
-            "expires_at"
-          ],
+          "columns": ["expires_at"],
           "isUnique": false
         },
         "idx_entry_versions_blob_expires_at": {
           "name": "idx_entry_versions_blob_expires_at",
-          "columns": [
-            "blob_id",
-            "expires_at"
-          ],
+          "columns": ["blob_id", "expires_at"],
           "isUnique": false
         }
       },
@@ -487,10 +464,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "local_vault_cursors_user_id_local_vault_id_pk": {
-          "columns": [
-            "user_id",
-            "local_vault_id"
-          ],
+          "columns": ["user_id", "local_vault_id"],
           "name": "local_vault_cursors_user_id_local_vault_id_pk"
         }
       },
@@ -547,9 +521,7 @@
       "indexes": {
         "idx_maintenance_jobs_due_at": {
           "name": "idx_maintenance_jobs_due_at",
-          "columns": [
-            "due_at"
-          ],
+          "columns": ["due_at"],
           "isUnique": false
         }
       },

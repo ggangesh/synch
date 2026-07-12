@@ -1,17 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import {
-  getNotices,
-  resetObsidianMocks,
-  setRequestUrlMock,
-} from "../test-stubs/obsidian";
 import { SyncController } from "../sync/runtime/controller";
-import { SynchPluginController } from "./plugin-controller";
+import { getNotices, resetObsidianMocks, setRequestUrlMock } from "../test-stubs/obsidian";
 import {
   createConnectedPlugin,
   mockOnlineReadinessRequests,
   storedConnection,
 } from "./__tests__/readiness-helpers";
+import { SynchPluginController } from "./plugin-controller";
 
 describe("SynchPluginController readiness reconciliation", () => {
   beforeEach(() => {
@@ -36,9 +31,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     const initializeStore = vi
       .spyOn(SyncController.prototype, "initializeStore")
       .mockResolvedValue();
-    const startSync = vi
-      .spyOn(SyncController.prototype, "ensureAutoSyncState")
-      .mockResolvedValue();
+    const startSync = vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
     const controller = new SynchPluginController({
       plugin,
       refreshUi: vi.fn(),
@@ -47,9 +40,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     await controller.initialize();
     await controller.ensureAutoSyncState();
 
-    expect(controller.getAuthStatusLabel()).toBe(
-      "Connect to the internet to check sign-in.",
-    );
+    expect(controller.getAuthStatusLabel()).toBe("Connect to the internet to check sign-in.");
     expect(controller.getSyncState()).toBe("offline");
     expect(initializeStore).not.toHaveBeenCalled();
     expect(startSync).not.toHaveBeenCalled();
@@ -66,9 +57,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     const initializeStore = vi
       .spyOn(SyncController.prototype, "initializeStore")
       .mockResolvedValue();
-    const startSync = vi
-      .spyOn(SyncController.prototype, "ensureAutoSyncState")
-      .mockResolvedValue();
+    const startSync = vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
     const stopAutoSyncAndMarkPaused = vi
       .spyOn(SyncController.prototype, "stopAutoSyncAndMarkPaused")
       .mockImplementation(() => {});
@@ -81,9 +70,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     await controller.ensureAutoSyncState();
 
     expect(controller.getAuthStatusLabel()).toBe("Signed in as user@example.com.");
-    expect(controller.getRemoteVaultStatusLabel()).toBe(
-      "Vault Recovered loaded on this device.",
-    );
+    expect(controller.getRemoteVaultStatusLabel()).toBe("Vault Recovered loaded on this device.");
     expect(initializeStore).toHaveBeenCalledWith("vault-1");
     expect(stopAutoSyncAndMarkPaused).toHaveBeenCalledTimes(1);
     expect(startSync).not.toHaveBeenCalled();
@@ -160,9 +147,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     const initializeStore = vi
       .spyOn(SyncController.prototype, "initializeStore")
       .mockResolvedValue();
-    const startSync = vi
-      .spyOn(SyncController.prototype, "ensureAutoSyncState")
-      .mockResolvedValue();
+    const startSync = vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
     const controller = new SynchPluginController({
       plugin,
       refreshUi: vi.fn(),
@@ -177,9 +162,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     await flushPromises();
 
     expect(controller.getAuthStatusLabel()).toBe("Signed in as user@example.com.");
-    expect(controller.getRemoteVaultStatusLabel()).toBe(
-      "Vault Recovered loaded on this device.",
-    );
+    expect(controller.getRemoteVaultStatusLabel()).toBe("Vault Recovered loaded on this device.");
     expect(initializeStore).toHaveBeenCalledWith("vault-1");
     expect(startSync).toHaveBeenCalledTimes(1);
   });
@@ -193,13 +176,9 @@ describe("SynchPluginController readiness reconciliation", () => {
     const initializeStore = vi
       .spyOn(SyncController.prototype, "initializeStore")
       .mockResolvedValue();
-    vi.spyOn(SyncController.prototype, "hasStore")
-      .mockReturnValueOnce(false)
-      .mockReturnValue(true);
+    vi.spyOn(SyncController.prototype, "hasStore").mockReturnValueOnce(false).mockReturnValue(true);
     vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
-    const resumeAutoSync = vi
-      .spyOn(SyncController.prototype, "resumeAutoSync")
-      .mockResolvedValue();
+    const resumeAutoSync = vi.spyOn(SyncController.prototype, "resumeAutoSync").mockResolvedValue();
     const controller = new SynchPluginController({
       plugin,
       refreshUi: vi.fn(),
@@ -322,9 +301,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     const resetLocalSyncState = vi
       .spyOn(SyncController.prototype, "resetLocalSyncState")
       .mockResolvedValue();
-    const startSync = vi
-      .spyOn(SyncController.prototype, "ensureAutoSyncState")
-      .mockResolvedValue();
+    const startSync = vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
     const controller = new SynchPluginController({
       plugin,
       refreshUi: vi.fn(),
@@ -334,9 +311,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     await controller.ensureAutoSyncState();
 
     expect(controller.hasConnectedRemoteVault()).toBe(false);
-    expect(controller.getRemoteVaultStatusLabel()).toBe(
-      "No vault is configured on this device.",
-    );
+    expect(controller.getRemoteVaultStatusLabel()).toBe("No vault is configured on this device.");
     expect(controller.getSyncState()).toBe("not_ready");
     expect(resetLocalSyncState).toHaveBeenCalledTimes(1);
     expect(startSync).not.toHaveBeenCalled();
@@ -395,9 +370,7 @@ describe("SynchPluginController readiness reconciliation", () => {
     vi.spyOn(SyncController.prototype, "readStoredConnection").mockResolvedValue(
       storedConnection(),
     );
-    vi.spyOn(SyncController.prototype, "readLocalVaultId").mockResolvedValue(
-      "local-vault-1",
-    );
+    vi.spyOn(SyncController.prototype, "readLocalVaultId").mockResolvedValue("local-vault-1");
     vi.spyOn(SyncController.prototype, "initializeStore").mockResolvedValue();
     vi.spyOn(SyncController.prototype, "ensureAutoSyncState").mockResolvedValue();
     const resetLocalSyncState = vi

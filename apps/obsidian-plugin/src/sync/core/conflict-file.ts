@@ -50,11 +50,7 @@ async function ensureParentDirectories(
   }
 }
 
-function buildConflictCopyPath(
-  path: string,
-  timestamp: string,
-  attempt: number,
-): string {
+function buildConflictCopyPath(path: string, timestamp: string, attempt: number): string {
   const slashIndex = path.lastIndexOf("/");
   const parent = slashIndex >= 0 ? path.slice(0, slashIndex) : "";
   const fileName = slashIndex >= 0 ? path.slice(slashIndex + 1) : path;

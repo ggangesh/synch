@@ -91,9 +91,7 @@ export type SnapshotEntryState = {
   local: LocalSyncEntryRow | null;
 };
 
-export function uniqueSyncPaths(
-  paths: ReadonlyArray<string | null | undefined>,
-): Array<string> {
+export function uniqueSyncPaths(paths: ReadonlyArray<string | null | undefined>): Array<string> {
   return [...new Set(paths.filter((path): path is string => !!path))];
 }
 
@@ -101,10 +99,7 @@ export function isDeferredByCursorThreshold(
   item: PullEntryStateManifestItem,
   deferredCursorThreshold: number | null,
 ): boolean {
-  return (
-    deferredCursorThreshold !== null &&
-    item.state.updatedSeq >= deferredCursorThreshold
-  );
+  return deferredCursorThreshold !== null && item.state.updatedSeq >= deferredCursorThreshold;
 }
 
 export async function mapWithConcurrency<TInput, TOutput>(
@@ -116,9 +111,7 @@ export async function mapWithConcurrency<TInput, TOutput>(
     return [];
   }
 
-  const normalizedConcurrency = Number.isFinite(concurrency)
-    ? Math.floor(concurrency)
-    : 1;
+  const normalizedConcurrency = Number.isFinite(concurrency) ? Math.floor(concurrency) : 1;
   const workerCount = Math.max(1, Math.min(normalizedConcurrency, items.length));
   const results = new Array<TOutput>(items.length);
   let nextIndex = 0;
@@ -144,10 +137,7 @@ export function createPathDependencyBatches(
   const planRootKeys = new Map<PlannedEntryState, string>();
 
   for (const [index, plan] of plans.entries()) {
-    const paths = uniqueSyncPaths([
-      ...pathsToRemoveForPlan(plan),
-      ...pathsToWriteForPlan(plan),
-    ]);
+    const paths = uniqueSyncPaths([...pathsToRemoveForPlan(plan), ...pathsToWriteForPlan(plan)]);
     const rootKey = paths[0] ?? `plan:${index}`;
     if (!parent.has(rootKey)) {
       parent.set(rootKey, rootKey);
@@ -240,9 +230,7 @@ export function uniquePendingConflicts(
   return unique;
 }
 
-export function pathsToRemoveForPlan(
-  plan: PlannedEntryState,
-): Array<string | null | undefined> {
+export function pathsToRemoveForPlan(plan: PlannedEntryState): Array<string | null | undefined> {
   if (plan.state.deleted) {
     return [plan.existing?.path ?? plan.metadata.path];
   }
@@ -254,9 +242,7 @@ export function pathsToRemoveForPlan(
   return plan.existing?.path !== plan.finalPath ? [plan.existing?.path] : [];
 }
 
-export function pathsToWriteForPlan(
-  plan: PlannedEntryState,
-): Array<string | null | undefined> {
+export function pathsToWriteForPlan(plan: PlannedEntryState): Array<string | null | undefined> {
   return [plan.finalPath];
 }
 

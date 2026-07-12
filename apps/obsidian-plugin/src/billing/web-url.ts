@@ -18,10 +18,7 @@ function inferWebBaseUrl(apiBaseUrl: string): string {
     return "https://synch.run";
   }
 
-  if (
-    (host === "127.0.0.1" || host === "localhost") &&
-    url.port === "8787"
-  ) {
+  if ((host === "127.0.0.1" || host === "localhost") && url.port === "8787") {
     return "http://localhost:4321";
   }
 

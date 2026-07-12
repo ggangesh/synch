@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { setRequestUrlMock } from "obsidian";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SyncTokenResponse } from "./client";
 import { SyncAuthorizedRequestClient } from "./request-client";

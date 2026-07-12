@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import { SyncPullService } from "../../pull-service";
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
 import {
   createCommit,
   createEventGate,
@@ -125,9 +127,7 @@ describe("SyncPullService tombstones", () => {
     expect(adapter.text("Folder/note.md")).toBeNull();
     expect(adapter.text("Folder/catchup.md")).toBe("catchup body");
     expect(adapter.text("Local/orphan.md")).toBe("local orphan");
-    expect(adapter.text("Folder/note.sync-conflict-20260422-101112.md")).toBe(
-      "local stale body",
-    );
+    expect(adapter.text("Folder/note.sync-conflict-20260422-101112.md")).toBe("local stale body");
     expect(await store.listDirtyEntries()).toEqual([]);
     expect(await store.getCursor()).toBe(11);
     expect(await store.getEntryById("entry-stale")).toMatchObject({

@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import type { Plugin } from "obsidian";
+import { describe, expect, it } from "vitest";
 
 import {
   decorateFileExplorerElement,
-  SynchFileSizeBlockedDecorator,
   formatFileSizeBlockedTooltip,
+  SynchFileSizeBlockedDecorator,
 } from "./file-size-blocked-decorator";
 
 describe("Synch file-size blocked decorator", () => {
@@ -116,7 +116,9 @@ describe("Synch file-size blocked decorator", () => {
     decorator.initialize();
     await decorator.refresh();
 
-    cleanupCallbacks.forEach((callback) => callback());
+    for (const callback of cleanupCallbacks) {
+      callback();
+    }
 
     const large = root.findByPath("large.md");
     expect(large?.classList.contains("synch-file-size-blocked")).toBe(false);

@@ -13,10 +13,7 @@ export interface SynchCommandController {
   openVersionHistoryPane(): Promise<void>;
 }
 
-export function registerSynchCommands(
-  plugin: Plugin,
-  controller: SynchCommandController,
-): void {
+export function registerSynchCommands(plugin: Plugin, controller: SynchCommandController): void {
   plugin.addCommand({
     id: "sign-in-on-this-device",
     name: t("auth.signInOnThisDevice"),

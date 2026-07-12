@@ -1,6 +1,5 @@
-import { Notice } from "obsidian";
-
 import type { Plugin } from "obsidian";
+import { Notice } from "obsidian";
 
 import {
   isOffline as detectOffline,
@@ -14,11 +13,7 @@ import {
   type DeviceAuthorizationPollResult,
   type DeviceAuthorizationStart,
 } from "./client";
-import {
-  clearAuthSessionToken,
-  readAuthSessionToken,
-  writeAuthSessionToken,
-} from "./storage";
+import { clearAuthSessionToken, readAuthSessionToken, writeAuthSessionToken } from "./storage";
 
 export type AuthReadiness =
   | { state: "anonymous" }
@@ -153,13 +148,11 @@ export class AuthManager {
     const apiBaseUrl = this.deps.getApiBaseUrl();
 
     try {
-      const authorization = await this.authClient.startDeviceAuthorization(
-        apiBaseUrl,
-      );
+      const authorization = await this.authClient.startDeviceAuthorization(apiBaseUrl);
       this.deviceAuthorization = authorization;
       this.deps.refreshUi();
 
-      let cancelled = false;
+      const cancelled = false;
       this.openDeviceLogin(authorization);
 
       let pollDelayMs = authorization.interval * 1000;
@@ -220,10 +213,7 @@ export class AuthManager {
 
     try {
       if (this.authSessionToken) {
-        await this.authClient.signOut(
-          apiBaseUrl,
-          this.authSessionToken,
-        );
+        await this.authClient.signOut(apiBaseUrl, this.authSessionToken);
       }
     } finally {
       await this.clearLocalAuthSession();
@@ -269,12 +259,8 @@ export class AuthManager {
   }
 
   private openDeviceLogin(authorization: DeviceAuthorizationStart): void {
-    this.notify(
-      `Opening browser for device sign-in...\nCode: ${authorization.userCode}`,
-    );
-    this.openExternalUrl(
-      withDeviceLoginLocale(authorization.verificationUriComplete),
-    );
+    this.notify(`Opening browser for device sign-in...\nCode: ${authorization.userCode}`);
+    this.openExternalUrl(withDeviceLoginLocale(authorization.verificationUriComplete));
   }
 
   private openExternalUrl(url: string): void {

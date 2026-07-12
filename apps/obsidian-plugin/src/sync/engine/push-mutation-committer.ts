@@ -1,8 +1,5 @@
 import { writeConflictCopy } from "../core/conflict-file";
-import {
-  createSyncCryptoContext,
-  type SyncCryptoContext,
-} from "../core/crypto";
+import { createSyncCryptoContext, type SyncCryptoContext } from "../core/crypto";
 import type { SyncTokenResponse } from "../remote/client";
 import {
   type CommitAcceptedResult,
@@ -10,10 +7,7 @@ import {
   SyncRealtimeError,
   type SyncRealtimeSession,
 } from "../remote/realtime-client";
-import type {
-  AcceptedPushMutationRow,
-  PendingMutationRow,
-} from "../store/store";
+import type { AcceptedPushMutationRow, PendingMutationRow } from "../store/store";
 import { PushMutationPreparer } from "./push-mutation-preparer";
 import {
   isLocalAheadStaleRevision,
@@ -21,7 +15,6 @@ import {
   isSkippedPushMutation,
   metadataContextFromMutation,
 } from "./push-mutation-shared";
-import { isAutoMergeTextPath } from "./text-merge-policy";
 import type {
   PreparedPushMutation,
   PreparePushMutationResult,
@@ -30,6 +23,7 @@ import type {
   PushMutationCommitterDeps,
   PushMutationStore,
 } from "./push-mutation-types";
+import { isAutoMergeTextPath } from "./text-merge-policy";
 
 export type {
   LocalFileReader,
@@ -97,7 +91,7 @@ export class PushMutationCommitter {
     mutation: PendingMutationRow,
     prepared: PreparedPushMutation,
   ): Promise<PushMutationCommitResult> {
-    let accepted;
+    let accepted: CommitAcceptedResult | undefined;
     try {
       accepted = await session.commitMutation(prepared.commitPayload);
     } catch (error) {
@@ -174,11 +168,7 @@ export class PushMutationCommitter {
         shouldPullAfterPush: true,
       };
     }
-    const handledConflict = await this.handleLocalAheadConflict(
-      store,
-      mutation,
-      rejected,
-    );
+    const handledConflict = await this.handleLocalAheadConflict(store, mutation, rejected);
     if (handledConflict) {
       return {
         status: "conflict",

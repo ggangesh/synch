@@ -1,9 +1,8 @@
 import type { ConflictFileWriter } from "../core/conflict-file";
 import { decryptSyncMetadata } from "../core/crypto";
-import type { SyncTokenResponse } from "../remote/client";
 import type { RemoteEntryState } from "../remote/changes";
+import type { SyncTokenResponse } from "../remote/client";
 import type { SyncPullClient } from "../remote/pull-client";
-import type { PendingMutationRow, SyncProgressCounts } from "../store/store";
 import type {
   SyncBlobStore,
   SyncEntryStore,
@@ -11,35 +10,36 @@ import type {
   SyncMutationStore,
   SyncRemoteEntryStore,
 } from "../store/ports";
+import type { PendingMutationRow, SyncProgressCounts } from "../store/store";
 import {
-  renameVaultPath,
   removeVaultPathIfExists,
+  renameVaultPath,
   type SyncVaultWriter,
   writeVaultBytes,
 } from "../vault/vault-writer";
 import type { SyncEventGateLike } from "./event-gate";
 import { PullBlobPreparer } from "./pull-blob-preparer";
-import { PullManifestPlanner, type PullManifestStore } from "./pull-manifest-planner";
-import { PullPendingMutationHandler } from "./pull-pending-mutation-handler";
 import {
   createPathDependencyBatches,
   DEFAULT_PREPARE_CONCURRENCY,
   groupPendingConflictsByPlan,
   mapWithConcurrency,
   metadataContextFromRemoteState,
-  packPathDependencyBatches,
-  pathsToRemoveForPlan,
-  type PullConflictEvent,
-  type PullEntryStateManifestItem,
   type PlannedEntryState,
   type PreparedEntryBlob,
   type PreparedManifestApplication,
-  type PreparedPendingConflict,
   type PreparedPathBatch,
+  type PreparedPendingConflict,
+  type PullConflictEvent,
+  type PullEntryStateManifestItem,
+  packPathDependencyBatches,
+  pathsToRemoveForPlan,
   type SnapshotEntryState,
   uniquePendingConflicts,
   uniqueSyncPaths,
 } from "./pull-entry-state-internal";
+import { PullManifestPlanner, type PullManifestStore } from "./pull-manifest-planner";
+import { PullPendingMutationHandler } from "./pull-pending-mutation-handler";
 
 export interface PullEntryStateApplierDeps {
   getApiBaseUrl: () => string;
@@ -63,32 +63,18 @@ export interface PullEntryStateApplyResult {
 
 export type { PullConflictEvent, PullEntryStateManifestItem };
 
-export interface PullEntryStateVaultAdapter
-  extends ConflictFileWriter,
-    SyncVaultWriter {
+export interface PullEntryStateVaultAdapter extends ConflictFileWriter, SyncVaultWriter {
   readBytes(path: string): Promise<Uint8Array>;
 }
 
 export interface PullEntryStateStore
   extends PullManifestStore,
-    Pick<
-      SyncEntryStore,
-      "deleteEntry" | "getEntryStateById" | "upsertEntry"
-    >,
-    Pick<
-      SyncRemoteEntryStore,
-      "applyRemoteState" | "clearRemoteState" | "getRemoteStateById"
-    >,
-    Pick<
-      SyncLocalEntryStore,
-      "applyLocalState" | "clearLocalState" | "getLocalStateById"
-    >,
+    Pick<SyncEntryStore, "deleteEntry" | "getEntryStateById" | "upsertEntry">,
+    Pick<SyncRemoteEntryStore, "applyRemoteState" | "clearRemoteState" | "getRemoteStateById">,
+    Pick<SyncLocalEntryStore, "applyLocalState" | "clearLocalState" | "getLocalStateById">,
     Pick<
       SyncMutationStore,
-      | "clearDirtyEntryByMutationId"
-      | "listDirtyEntries"
-      | "markEntryDirty"
-      | "replaceDirtyEntry"
+      "clearDirtyEntryByMutationId" | "listDirtyEntries" | "markEntryDirty" | "replaceDirtyEntry"
     >,
     Pick<SyncBlobStore, "getBlob" | "putBlob"> {}
 
@@ -107,9 +93,7 @@ export class PullEntryStateApplier {
     this.pendingMutations = new PullPendingMutationHandler(deps);
   }
 
-  async createManifestItems(
-    states: RemoteEntryState[],
-  ): Promise<PullEntryStateManifestItem[]> {
+  async createManifestItems(states: RemoteEntryState[]): Promise<PullEntryStateManifestItem[]> {
     const remoteVaultKey = this.deps.getRemoteVaultKey();
 
     return await mapWithConcurrency(
@@ -131,11 +115,7 @@ export class PullEntryStateApplier {
     token: SyncTokenResponse,
     states: RemoteEntryState[],
   ): Promise<PullEntryStateApplyResult> {
-    return await this.applyManifest(
-      store,
-      token,
-      await this.createManifestItems(states),
-    );
+    return await this.applyManifest(store, token, await this.createManifestItems(states));
   }
 
   async applyManifest(
@@ -179,11 +159,7 @@ export class PullEntryStateApplier {
     const prepared = await this.prepareManifestApplication(store, token, manifest, {
       deferExternalPathOwners: !options.finalWindow,
     });
-    const filesDeleted = await this.applyPreparedManifest(
-      store,
-      prepared,
-      options.progress,
-    );
+    const filesDeleted = await this.applyPreparedManifest(store, prepared, options.progress);
 
     return {
       entriesApplied: prepared.plans.length,
@@ -215,18 +191,12 @@ export class PullEntryStateApplier {
     await this.applySkippedRemoteStates(store, allPlans, plans);
     await this.markAlreadyCurrentVaultWrites(store, plans);
     const pathsToWrite = uniqueSyncPaths(
-      plans
-        .filter((plan) => !plan.skipVaultWrite)
-        .map((plan) => plan.finalPath),
+      plans.filter((plan) => !plan.skipVaultWrite).map((plan) => plan.finalPath),
     );
     const pendingConflicts: PreparedPendingConflict[] = [];
     const preparedPendingMutationIds = new Set<string>();
     const batches: PreparedPathBatch[] = [];
-    const preparedBlobs = await this.blobPreparer.preparePathBatchBlobs(
-      store,
-      token,
-      plans,
-    );
+    const preparedBlobs = await this.blobPreparer.preparePathBatchBlobs(store, token, plans);
     const blobByPlan = new Map(preparedBlobs.map((blob) => [blob.plan, blob]));
 
     for (const plan of plans) {
@@ -274,10 +244,7 @@ export class PullEntryStateApplier {
   }
 
   private shouldApplyPlanToVault(plan: PlannedEntryState): boolean {
-    return (
-      !plan.metadata.path ||
-      this.deps.shouldApplyRemotePath?.(plan.metadata.path) !== false
-    );
+    return !plan.metadata.path || this.deps.shouldApplyRemotePath?.(plan.metadata.path) !== false;
   }
 
   private async applySkippedRemoteStates(
@@ -483,11 +450,7 @@ export class PullEntryStateApplier {
       return null;
     }
 
-    return (
-      plan.adoptedLocalEntry?.entry.localMtime ??
-      plan.existing?.localMtime ??
-      null
-    );
+    return plan.adoptedLocalEntry?.entry.localMtime ?? plan.existing?.localMtime ?? null;
   }
 
   private localSizeForAppliedPlan(plan: PlannedEntryState): number | null {
@@ -495,11 +458,7 @@ export class PullEntryStateApplier {
       return null;
     }
 
-    return (
-      plan.adoptedLocalEntry?.entry.localSize ??
-      plan.existing?.localSize ??
-      null
-    );
+    return plan.adoptedLocalEntry?.entry.localSize ?? plan.existing?.localSize ?? null;
   }
 
   private async applyAdoptedLocalEntries(

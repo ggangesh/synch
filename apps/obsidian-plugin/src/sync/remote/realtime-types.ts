@@ -1,8 +1,5 @@
+import type { EntryStatePageCursor, ListEntryStatesResponse } from "./changes";
 import type { SyncTokenResponse } from "./client";
-import type {
-  EntryStatePageCursor,
-  ListEntryStatesResponse,
-} from "./changes";
 
 export interface SyncRealtimeCallbacks {
   onCursorAdvanced(cursor: number): void;
@@ -93,15 +90,9 @@ export interface SyncRealtimeSession {
     before: DeletedEntryPageCursor | null;
     limit: number;
   }): Promise<DeletedEntriesResponse>;
-  restoreEntryVersion(
-    input: RestoreEntryVersionPayload,
-  ): Promise<EntryVersionRestoredResponse>;
-  restoreEntryVersions(
-    input: RestoreEntryVersionPayload[],
-  ): Promise<EntryVersionsRestoredResponse>;
-  purgeDeletedEntries(
-    input: PurgeDeletedEntryPayload[],
-  ): Promise<DeletedEntriesPurgedResponse>;
+  restoreEntryVersion(input: RestoreEntryVersionPayload): Promise<EntryVersionRestoredResponse>;
+  restoreEntryVersions(input: RestoreEntryVersionPayload[]): Promise<EntryVersionsRestoredResponse>;
+  purgeDeletedEntries(input: PurgeDeletedEntryPayload[]): Promise<DeletedEntriesPurgedResponse>;
   detachLocalVault(): Promise<void>;
   commitMutation(mutation: CommitMutationPayload): Promise<CommitAcceptedResult>;
   commitMutations(mutations: CommitMutationPayload[]): Promise<CommitMutationsResult>;
@@ -328,11 +319,11 @@ export type ServerMessage =
       code: string;
       message: string;
     }
-	  | {
-	      type: "local_vault_detached";
-	      requestId: string;
-	    }
-	  | {
+  | {
+      type: "local_vault_detached";
+      requestId: string;
+    }
+  | {
       type: "heartbeat_ack";
       requestId: string;
     }

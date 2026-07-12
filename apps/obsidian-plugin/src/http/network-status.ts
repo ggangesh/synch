@@ -15,20 +15,14 @@ const OFFLINE_ERROR_MARKERS = [
 ];
 
 export function isBrowserOffline(): boolean {
-  return (
-    typeof globalThis.navigator !== "undefined" &&
-    globalThis.navigator.onLine === false
-  );
+  return typeof globalThis.navigator !== "undefined" && globalThis.navigator.onLine === false;
 }
 
 export function isOffline(isOfflineOverride?: OfflineDetector): boolean {
   return isOfflineOverride?.() ?? isBrowserOffline();
 }
 
-export function isOfflineLikeError(
-  error: unknown,
-  isOfflineOverride?: OfflineDetector,
-): boolean {
+export function isOfflineLikeError(error: unknown, isOfflineOverride?: OfflineDetector): boolean {
   if (isOffline(isOfflineOverride)) {
     return true;
   }

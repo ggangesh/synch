@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createInitializedTestSyncStore, createTestPlugin } from "../../../../test-support/test-plugin";
+import {
+  createInitializedTestSyncStore,
+  createTestPlugin,
+} from "../../../../test-support/test-plugin";
 import type { SyncRealtimeCallbacks } from "../../../remote/realtime-client";
 import { SyncAutoLoop } from "../../auto-sync";
-import {
-  createRealtimeClient,
-  createToken,
-} from "./helpers";
+import { createRealtimeClient, createToken } from "./helpers";
 
 describe("SyncAutoLoop remote cursors", () => {
   it("pulls after reconnecting when the server cursor is ahead of the local cursor", async () => {

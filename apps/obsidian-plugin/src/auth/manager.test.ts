@@ -1,12 +1,8 @@
 import { Plugin, resetObsidianMocks, setLanguage } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { AuthManager } from "./manager";
 import type { AuthClient, DeviceAuthorizationStart } from "./client";
-import {
-  readAuthSessionToken,
-  writeAuthSessionToken,
-} from "./storage";
+import { AuthManager } from "./manager";
+import { readAuthSessionToken, writeAuthSessionToken } from "./storage";
 
 describe("AuthManager", () => {
   beforeEach(() => {
@@ -32,10 +28,7 @@ describe("AuthManager", () => {
 
     await manager.initialize();
 
-    expect(getAuthenticatedUser).toHaveBeenCalledWith(
-      "http://127.0.0.1:8787",
-      "stored-token",
-    );
+    expect(getAuthenticatedUser).toHaveBeenCalledWith("http://127.0.0.1:8787", "stored-token");
     expect(manager.hasAuthenticatedSession()).toBe(true);
     expect(manager.getAuthStatusLabel()).toBe("Signed in as user@example.com.");
   });
@@ -98,9 +91,7 @@ describe("AuthManager", () => {
       token: "offline-token",
     });
     expect(manager.getAuthSessionToken()).toBe("offline-token");
-    expect(manager.getAuthStatusLabel()).toBe(
-      "Connect to the internet to check sign-in.",
-    );
+    expect(manager.getAuthStatusLabel()).toBe("Connect to the internet to check sign-in.");
     await expect(readAuthSessionToken(plugin)).resolves.toBe("offline-token");
   });
 
@@ -127,9 +118,7 @@ describe("AuthManager", () => {
       state: "pending_network",
       token: "offline-token",
     });
-    expect(manager.getAuthStatusLabel()).toBe(
-      "Connect to the internet to check sign-in.",
-    );
+    expect(manager.getAuthStatusLabel()).toBe("Connect to the internet to check sign-in.");
   });
 
   it("verifies a pending offline token when readiness refresh succeeds", async () => {
@@ -205,9 +194,7 @@ describe("AuthManager", () => {
     expect(openExternalUrl).toHaveBeenLastCalledWith(
       "https://example.com/device?user_code=USER-CODE&lang=en",
     );
-    expect(notify).not.toHaveBeenCalledWith(
-      "Device sign-in is already in progress.",
-    );
+    expect(notify).not.toHaveBeenCalledWith("Device sign-in is already in progress.");
     expect(notify).toHaveBeenLastCalledWith(
       `Opening browser for device sign-in...\nCode: ${authorization.userCode}`,
     );

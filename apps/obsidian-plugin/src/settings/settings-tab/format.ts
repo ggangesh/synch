@@ -1,9 +1,6 @@
 import { t } from "../../i18n";
 import type { SynchSyncProgress, SynchSyncState } from "../../plugin/view-models";
-import {
-  isStorageFullStatus,
-  isStorageWarningStatus,
-} from "../../utils/storage-warning";
+import { isStorageFullStatus, isStorageWarningStatus } from "../../utils/storage-warning";
 import type { SynchSettingsController } from "../controller";
 
 export function shouldShowSyncSpinner(state: SynchSyncState): boolean {

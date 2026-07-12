@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SyncRealtimeError } from "../../realtime-client";
-import {
-  createMutation,
-  openRealtimeSession,
-  waitForSentMessage,
-} from "./helpers";
+import { createMutation, openRealtimeSession, waitForSentMessage } from "./helpers";
 
 describe("SyncRealtimeClient commits", () => {
   it("routes commit rejections to the pending commit without reporting a background error", async () => {

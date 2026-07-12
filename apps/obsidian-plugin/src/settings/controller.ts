@@ -1,18 +1,18 @@
 import type { AuthReadiness } from "../auth/manager";
 import type {
+  SynchDeletedFile,
   SynchDeletedFileCursor,
   SynchDeletedFilesPage,
   SynchDeletedFilesPurgeResult,
-  SynchDeletedFile,
   SynchDeletedFilesRestoreResult,
-  SynchFileSizeBlockedFile,
   SynchFileRules,
-  SynchVaultConfigSyncRules,
+  SynchFileSizeBlockedFile,
   SynchPluginUpdateStatus,
   SynchStorageStatus,
   SynchSubscriptionStatus,
   SynchSyncProgress,
   SynchSyncState,
+  SynchVaultConfigSyncRules,
   SynchVersionPreview,
 } from "../plugin/view-models";
 

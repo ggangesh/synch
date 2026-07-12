@@ -27,14 +27,9 @@ export const DEFAULT_VAULT_CONFIG_SYNC_RULES: VaultConfigSyncRules = {
 };
 
 const SYNCH_PLUGIN_CONFIG_PREFIX = "plugins/synch/";
-const DEVICE_LOCAL_CONFIG_PATHS = new Set([
-  "workspace.json",
-  "workspace-mobile.json",
-]);
+const DEVICE_LOCAL_CONFIG_PATHS = new Set(["workspace.json", "workspace-mobile.json"]);
 
-export function normalizeVaultConfigSyncRules(
-  value: unknown,
-): VaultConfigSyncRules {
+export function normalizeVaultConfigSyncRules(value: unknown): VaultConfigSyncRules {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return { ...DEFAULT_VAULT_CONFIG_SYNC_RULES };
   }
@@ -43,14 +38,8 @@ export function normalizeVaultConfigSyncRules(
   return {
     enabled: asBoolean(record.enabled, DEFAULT_VAULT_CONFIG_SYNC_RULES.enabled),
     configDir: normalizeConfigDir(record.configDir),
-    mainSettings: asBoolean(
-      record.mainSettings,
-      DEFAULT_VAULT_CONFIG_SYNC_RULES.mainSettings,
-    ),
-    appearance: asBoolean(
-      record.appearance,
-      DEFAULT_VAULT_CONFIG_SYNC_RULES.appearance,
-    ),
+    mainSettings: asBoolean(record.mainSettings, DEFAULT_VAULT_CONFIG_SYNC_RULES.mainSettings),
+    appearance: asBoolean(record.appearance, DEFAULT_VAULT_CONFIG_SYNC_RULES.appearance),
     themesAndSnippets: asBoolean(
       record.themesAndSnippets,
       DEFAULT_VAULT_CONFIG_SYNC_RULES.themesAndSnippets,
@@ -79,10 +68,7 @@ export function normalizeVaultConfigSyncRules(
   };
 }
 
-export function shouldSyncVaultConfigPath(
-  path: string,
-  rules: VaultConfigSyncRules,
-): boolean {
+export function shouldSyncVaultConfigPath(path: string, rules: VaultConfigSyncRules): boolean {
   if (!rules.enabled) {
     return false;
   }
@@ -103,8 +89,7 @@ export function shouldSyncVaultConfigPath(
   }
   if (
     rules.corePluginList &&
-    (relativePath === "core-plugins.json" ||
-      relativePath === "core-plugins-migration.json")
+    (relativePath === "core-plugins.json" || relativePath === "core-plugins-migration.json")
   ) {
     return true;
   }
@@ -113,8 +98,7 @@ export function shouldSyncVaultConfigPath(
   }
   if (
     rules.themesAndSnippets &&
-    (relativePath.startsWith("themes/") ||
-      relativePath.startsWith("snippets/"))
+    (relativePath.startsWith("themes/") || relativePath.startsWith("snippets/"))
   ) {
     return true;
   }
@@ -131,10 +115,7 @@ export function shouldSyncVaultConfigPath(
   return false;
 }
 
-export function isDeniedVaultConfigPath(
-  path: string,
-  configDir: string,
-): boolean {
+export function isDeniedVaultConfigPath(path: string, configDir: string): boolean {
   const relativePath = getConfigRelativePath(path, configDir);
   return relativePath !== null && isDeniedConfigRelativePath(relativePath);
 }

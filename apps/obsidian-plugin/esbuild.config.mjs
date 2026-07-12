@@ -1,9 +1,9 @@
-import { config as loadEnv } from "dotenv";
-import esbuild from "esbuild";
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { config as loadEnv } from "dotenv";
+import esbuild from "esbuild";
 
 const pluginRoot = path.dirname(fileURLToPath(import.meta.url));
 const releaseDir = path.join(pluginRoot, "dist");

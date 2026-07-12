@@ -44,10 +44,7 @@ export class AutoSyncTimers {
     return this.syncRetryTimer;
   }
 
-  private assign(
-    type: AutoSyncTimerType,
-    timer: ReturnType<typeof setTimeout> | null,
-  ): void {
+  private assign(type: AutoSyncTimerType, timer: ReturnType<typeof setTimeout> | null): void {
     if (type === "push") {
       this.pushTimer = timer;
       return;
