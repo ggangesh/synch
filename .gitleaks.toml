@@ -1,0 +1,25 @@
+# Gitleaks configuration for Synch monorepo
+
+[allowlist]
+  description = "Synch project allowlist"
+  paths = [
+    # Test fixtures and snapshots may contain placeholder secrets
+    '''\.test\.''',
+    '''\.spec\.''',
+    '''__snapshots__''',
+    '''test-support''',
+    # Lockfile contains hashes, not secrets
+    '''pnpm-lock\.yaml''',
+  ]
+  regexes = [
+    # Placeholder values in example configs
+    '''replace-with-random-hex''',
+    '''replace-with-different-random-hex''',
+    '''ci-better-auth-secret''',
+    '''ci-sync-token-secret''',
+    # Common test/CI false positives
+    '''THAT_IS_LONG_ENOUGH''',
+    '''127\.0\.0\.1''',
+    # Version strings that look like hex secrets
+    '''[0-9a-f]{7,8}''',
+  ]
