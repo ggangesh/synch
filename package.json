@@ -18,6 +18,7 @@
     "release:plugin": "pnpm -C apps/obsidian-plugin release:prepare",
     "test:api": "pnpm -C apps/api test:integration",
     "test:rust": "cargo test",
+    "audit": "pnpm audit --audit-level=high",
     "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {

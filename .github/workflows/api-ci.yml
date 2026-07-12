@@ -39,6 +39,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm audit --audit-level=high
+
       - run: pnpm -C apps/api typecheck
 
       - run: pnpm -C apps/api test:unit
